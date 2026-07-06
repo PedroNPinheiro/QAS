@@ -70,6 +70,13 @@ export const SECTIONS: Record<SectionKey, { label: string; color: string }> = {
   environment: { label: 'Environment', color: 'var(--color-environment)' },
 }
 
+/** External tools linked from the sidebar, per section. */
+export const EXTERNAL_LINKS: Record<SectionKey, { label: string; href: string }[]> = {
+  quality: [{ label: 'Complaints', href: 'https://ecm.cascointernal.com/complaints' }],
+  security: [],
+  environment: [],
+}
+
 export const STATUS_LABELS: Record<string, string> = {
   open: 'Open',
   in_progress: 'In progress',

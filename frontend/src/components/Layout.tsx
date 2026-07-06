@@ -1,7 +1,15 @@
-import { BarChart3, LayoutDashboard, LogOut, ScrollText, ShieldCheck, Users } from 'lucide-react'
+import {
+  BarChart3,
+  ExternalLink,
+  LayoutDashboard,
+  LogOut,
+  ScrollText,
+  ShieldCheck,
+  Users,
+} from 'lucide-react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth'
-import { MODULES, SECTIONS } from '../modules'
+import { EXTERNAL_LINKS, MODULES, SECTIONS } from '../modules'
 import type { SectionKey } from '../modules'
 
 const ORDER: SectionKey[] = ['quality', 'security', 'environment']
@@ -72,6 +80,18 @@ export default function Layout() {
               <div className="space-y-0.5">
                 {MODULES.filter((m) => m.section === key).map((m) => (
                   <NavItem key={m.path} to={m.path} icon={m.icon} label={m.navLabel} />
+                ))}
+                {EXTERNAL_LINKS[key].map((link) => (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-ink-secondary transition-colors hover:bg-ink/5 hover:text-ink"
+                  >
+                    <ExternalLink className="h-4 w-4 shrink-0" />
+                    <span className="truncate">{link.label}</span>
+                  </a>
                 ))}
               </div>
             </div>
