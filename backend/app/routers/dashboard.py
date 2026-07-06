@@ -5,8 +5,8 @@ from sqlalchemy import Numeric, case, cast, func, select
 from sqlalchemy.orm import Session
 
 from .. import models
-from ..auth import get_current_user
 from ..database import get_db
+from ..permissions import require_full_access
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
@@ -29,7 +29,7 @@ def _month_keys(months: int = 12) -> list[str]:
 
 
 @router.get("/summary")
-def summary(db: Session = Depends(get_db), _: models.User = Depends(get_current_user)):
+def summary(db: Session = Depends(get_db), _: models.User = Depends(require_full_access)):
     year_start = date(date.today().year, 1, 1)
     months = _month_keys(12)
     window_start = date(int(months[0][:4]), int(months[0][5:]), 1)

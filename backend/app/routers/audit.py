@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from .. import models
 from ..auth import get_current_user, require_admin
 from ..database import get_db
+from ..permissions import require_view
 from ..schemas import AuditRead, Page
 
 router = APIRouter(prefix="/api/audit", tags=["audit"])
@@ -15,8 +16,9 @@ def record_history(
     entity_type: str,
     entity_id: int,
     db: Session = Depends(get_db),
-    _: models.User = Depends(get_current_user),
+    user: models.User = Depends(get_current_user),
 ):
+    require_view(user, entity_type)
     return db.scalars(
         select(models.AuditLog)
         .where(

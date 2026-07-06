@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Check, Pencil, Trash2, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { useAuth } from '../auth'
+import { canCreate, canViewModule, editableFields, homePath } from '../permissions'
 import Attachments from '../components/Attachments'
 import History from '../components/History'
 import PendingFiles from '../components/PendingFiles'
@@ -142,9 +143,12 @@ function Field({
   )
 }
 
-/** Convert form values to an API payload with proper types. */
-function toPayload(module: ModuleDef, values: Rec): Rec {
-  const fields = module.form.flatMap((s) => s.fields)
+/** Convert form values to an API payload with proper types. Restricted teams
+ * only send the fields they are allowed to change. */
+function toPayload(module: ModuleDef, values: Rec, allowed: string[] | null): Rec {
+  const fields = module.form
+    .flatMap((s) => s.fields)
+    .filter((f) => allowed === null || allowed.includes(f.name))
   const payload: Rec = {}
   for (const f of fields) {
     let v = values[f.name]
@@ -262,11 +266,18 @@ export default function RecordPage({ module }: { module: ModuleDef }) {
   const section = SECTIONS[module.section]
   const title = isNew ? `New ${module.singular}` : String(record?.reference ?? '…')
 
+  const allowed = editableFields(user, module)
+  const canEditRecord = allowed === null || allowed.length > 0
+  const fieldEditable = (name: string) => allowed === null || allowed.includes(name)
+
+  if (!canViewModule(user, module)) return <Navigate to={homePath(user)} replace />
+  if (isNew && !canCreate(user)) return <Navigate to={module.path} replace />
+
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault()
-        save.mutate(toPayload(module, values))
+        save.mutate(toPayload(module, values, isNew ? null : allowed))
       }}
     >
       <div className="mb-6 flex items-start justify-between gap-4">
@@ -314,7 +325,7 @@ export default function RecordPage({ module }: { module: ModuleDef }) {
               Delete
             </button>
           )}
-          {!isNew && !editing && (
+          {!isNew && !editing && canEditRecord && (
             <button
               type="button"
               onClick={() => setEditing(true)}
@@ -368,7 +379,7 @@ export default function RecordPage({ module }: { module: ModuleDef }) {
             <h2 className="mb-4 text-sm font-semibold">{formSection.title}</h2>
             <div className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
               {formSection.fields.map((f) =>
-                editing ? (
+                editing && fieldEditable(f.name) ? (
                   <Field key={f.name} field={f} values={values} onChange={onChange} />
                 ) : (
                   <ReadField key={f.name} field={f} values={values} />

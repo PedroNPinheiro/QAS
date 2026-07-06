@@ -10,6 +10,7 @@ NCSeverity = Literal["minor", "major", "critical"]
 AccidentSeverity = Literal["first_aid", "minor", "serious", "fatal"]
 RiskLevel = Literal["low", "medium", "high"]
 Role = Literal["admin", "user"]
+Team = Literal["quality", "purchasing", "warehouse"]
 
 
 # ---------------------------------------------------------------- auth / users
@@ -31,6 +32,7 @@ class UserRead(BaseModel):
     email: str
     full_name: str
     role: Role
+    team: Team
     is_active: bool
     created_at: datetime
 
@@ -40,12 +42,14 @@ class UserCreate(BaseModel):
     full_name: str
     password: str = Field(min_length=8)
     role: Role = "user"
+    team: Team = "quality"
 
 
 class UserUpdate(BaseModel):
     full_name: str | None = None
     password: str | None = Field(default=None, min_length=8)
     role: Role | None = None
+    team: Team | None = None
     is_active: bool | None = None
 
 

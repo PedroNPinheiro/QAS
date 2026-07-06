@@ -5,8 +5,8 @@ from sqlalchemy import Numeric, case, cast, func, select
 from sqlalchemy.orm import Session
 
 from .. import models as m
-from ..auth import get_current_user
 from ..database import get_db
+from ..permissions import require_full_access
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
@@ -105,7 +105,7 @@ def analytics(
     metric: str = "count",
     group_by: str | None = None,
     db: Session = Depends(get_db),
-    _: m.User = Depends(get_current_user),
+    _: m.User = Depends(require_full_access),
 ):
     cfg = CONFIG.get(module)
     if cfg is None:

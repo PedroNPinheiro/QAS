@@ -25,6 +25,7 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db)):
         full_name=payload.full_name,
         hashed_password=hash_password(payload.password),
         role=payload.role,
+        team=payload.team,
     )
     db.add(user)
     db.flush()

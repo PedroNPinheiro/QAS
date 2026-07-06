@@ -14,6 +14,7 @@ import ListPage from './pages/ListPage'
 import Login from './pages/Login'
 import RecordPage from './pages/RecordPage'
 import Users from './pages/Users'
+import { hasFullAccess, homePath } from './permissions'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -22,6 +23,12 @@ const queryClient = new QueryClient({
 function AdminOnly({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
   if (user?.role !== 'admin') return <Navigate to="/" replace />
+  return children
+}
+
+function FullAccessOnly({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth()
+  if (!hasFullAccess(user)) return <Navigate to={homePath(user)} replace />
   return children
 }
 
@@ -40,8 +47,22 @@ createRoot(document.getElementById('root')!).render(
                 </RequireAuth>
               }
             >
-              <Route index element={<Dashboard />} />
-              <Route path="/analytics" element={<AnalyticsPage />} />
+              <Route
+                index
+                element={
+                  <FullAccessOnly>
+                    <Dashboard />
+                  </FullAccessOnly>
+                }
+              />
+              <Route
+                path="/analytics"
+                element={
+                  <FullAccessOnly>
+                    <AnalyticsPage />
+                  </FullAccessOnly>
+                }
+              />
               {MODULES.map((m) => (
                 <Route key={m.path} path={m.path}>
                   <Route index element={<ListPage module={m} />} />

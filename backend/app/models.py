@@ -30,6 +30,8 @@ class User(Base):
     # Nullable so SSO-provisioned accounts can exist without a local password.
     hashed_password: Mapped[str | None] = mapped_column(String(255))
     role: Mapped[str] = mapped_column(String(20), default="user")  # admin | user
+    # quality (full record access) | purchasing | warehouse (external NCs only)
+    team: Mapped[str] = mapped_column(String(20), default="quality", server_default="quality")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 

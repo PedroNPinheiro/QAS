@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from .. import models
 from ..audit import log_audit
 from ..auth import get_current_user
+from ..permissions import require_view
 from ..config import settings
 from ..database import get_db
 from ..schemas import AttachmentRead
@@ -48,11 +49,12 @@ def _get_entity_or_404(db: Session, entity_type: str, entity_id: int):
 def download_attachment(
     attachment_id: int,
     db: Session = Depends(get_db),
-    _: models.User = Depends(get_current_user),
+    user: models.User = Depends(get_current_user),
 ):
     attachment = db.get(models.Attachment, attachment_id)
     if attachment is None:
         raise HTTPException(status_code=404, detail="Attachment not found")
+    require_view(user, attachment.entity_type)
     path = Path(settings.upload_dir) / attachment.stored_name
     if not path.is_file():
         raise HTTPException(status_code=404, detail="File missing from storage")
@@ -68,8 +70,9 @@ def list_attachments(
     entity_type: str,
     entity_id: int,
     db: Session = Depends(get_db),
-    _: models.User = Depends(get_current_user),
+    user: models.User = Depends(get_current_user),
 ):
+    require_view(user, entity_type)
     _get_entity_or_404(db, entity_type, entity_id)
     return db.scalars(
         select(models.Attachment)
@@ -89,6 +92,7 @@ def upload_attachment(
     db: Session = Depends(get_db),
     user: models.User = Depends(get_current_user),
 ):
+    require_view(user, entity_type)
     entity = _get_entity_or_404(db, entity_type, entity_id)
     suffix = Path(file.filename or "file").suffix[:20].lower()
     if suffix not in ALLOWED_EXTENSIONS:
@@ -139,6 +143,7 @@ def delete_attachment(
     attachment = db.get(models.Attachment, attachment_id)
     if attachment is None:
         raise HTTPException(status_code=404, detail="Attachment not found")
+    require_view(user, attachment.entity_type)
     entity = db.get(ENTITY_MODELS.get(attachment.entity_type), attachment.entity_id)
     (Path(settings.upload_dir) / attachment.stored_name).unlink(missing_ok=True)
     log_audit(

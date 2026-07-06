@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from .audit import diff_changes, log_audit
 from .auth import get_current_user, require_admin
+from .permissions import editable_fields, require_create, require_view
 from .config import settings
 from .database import get_db
 from .models import Attachment, User
@@ -162,8 +163,9 @@ def create_crud_router(
         page_size: int = Query(20, ge=1, le=200),
         sort: str = "-created_at",
         db: Session = Depends(get_db),
-        _: User = Depends(get_current_user),
+        user: User = Depends(get_current_user),
     ):
+        require_view(user, entity_type)
         stmt = apply_filters(select(model), q, status)
         total = db.scalar(select(func.count()).select_from(stmt.subquery()))
         stmt = apply_sort(stmt, sort).offset((page - 1) * page_size).limit(page_size)
@@ -176,8 +178,9 @@ def create_crud_router(
         status: str | None = None,
         sort: str = "-created_at",
         db: Session = Depends(get_db),
-        _: User = Depends(get_current_user),
+        user: User = Depends(get_current_user),
     ):
+        require_view(user, entity_type)
         stmt = apply_sort(apply_filters(select(model), q, status), sort)
         rows = [
             read_schema.model_validate(_serialize(o)).model_dump()
@@ -203,8 +206,9 @@ def create_crud_router(
     def get_record(
         record_id: int,
         db: Session = Depends(get_db),
-        _: User = Depends(get_current_user),
+        user: User = Depends(get_current_user),
     ):
+        require_view(user, entity_type)
         obj = db.get(model, record_id)
         if obj is None:
             raise HTTPException(status_code=404, detail="Record not found")
@@ -216,6 +220,7 @@ def create_crud_router(
         db: Session = Depends(get_db),
         user: User = Depends(get_current_user),
     ):
+        require_create(user, entity_type)
         obj = model(**payload.model_dump())
         obj.reference = next_reference(db, ref_prefix)
         obj.created_by_id = user.id
@@ -242,7 +247,11 @@ def create_crud_router(
         obj = db.get(model, record_id)
         if obj is None:
             raise HTTPException(status_code=404, detail="Record not found")
+        require_view(user, entity_type)
+        allowed = editable_fields(user, entity_type)
         new_values = payload.model_dump(exclude_unset=True)
+        if allowed is not None:
+            new_values = {k: v for k, v in new_values.items() if k in allowed}
         changes = diff_changes(obj, new_values)
         for key, value in new_values.items():
             setattr(obj, key, value)

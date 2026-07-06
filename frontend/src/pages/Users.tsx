@@ -17,6 +17,7 @@ interface Draft {
   full_name: string
   password: string
   role: 'admin' | 'user'
+  team: 'quality' | 'purchasing' | 'warehouse'
   is_active: boolean
 }
 
@@ -25,8 +26,15 @@ const emptyDraft: Draft = {
   full_name: '',
   password: '',
   role: 'user',
+  team: 'quality',
   is_active: true,
 }
+
+const TEAM_OPTIONS = [
+  { value: 'quality', label: 'Quality (full access)' },
+  { value: 'purchasing', label: 'Purchasing (external NCs only)' },
+  { value: 'warehouse', label: 'Warehouse (external NCs only)' },
+] as const
 
 const inputCls =
   'w-full rounded-lg border border-hairline bg-surface px-3 py-2 text-sm outline-none transition-colors focus:border-accent'
@@ -101,6 +109,20 @@ function UserModal({
               className={inputCls}
             />
           </label>
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-ink-secondary">Team</span>
+            <select
+              value={draft.team}
+              onChange={(e) => setDraft({ ...draft, team: e.target.value as Draft['team'] })}
+              className={inputCls}
+            >
+              {TEAM_OPTIONS.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          </label>
           <div className="flex items-center gap-4">
             <label className="block flex-1">
               <span className="mb-1 block text-sm font-medium text-ink-secondary">Role</span>
@@ -169,11 +191,13 @@ export default function Users() {
           full_name: d.full_name,
           password: d.password,
           role: d.role,
+          team: d.team,
         })
       }
       const payload: Record<string, unknown> = {
         full_name: d.full_name,
         role: d.role,
+        team: d.team,
         is_active: d.is_active,
       }
       if (d.password) payload.password = d.password
@@ -212,7 +236,7 @@ export default function Users() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-hairline text-left">
-              {['Name', 'Email', 'Role', 'Status', 'Created'].map((h) => (
+              {['Name', 'Email', 'Team', 'Role', 'Status', 'Created'].map((h) => (
                 <th
                   key={h}
                   className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-ink-muted"
@@ -234,6 +258,7 @@ export default function Users() {
                     full_name: u.full_name,
                     password: '',
                     role: u.role,
+                    team: u.team,
                     is_active: u.is_active,
                   })
                 }}
@@ -244,6 +269,9 @@ export default function Users() {
                   {u.id === me?.id && <span className="ml-2 text-xs text-ink-muted">(you)</span>}
                 </td>
                 <td className="px-4 py-3 text-ink-secondary">{u.email}</td>
+                <td className="px-4 py-3">
+                  <span className="capitalize">{u.team}</span>
+                </td>
                 <td className="px-4 py-3">
                   <span className="capitalize">{u.role}</span>
                 </td>

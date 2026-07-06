@@ -9,8 +9,9 @@ import {
 } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth'
-import { EXTERNAL_LINKS, MODULES, SECTIONS } from '../modules'
+import { EXTERNAL_LINKS, SECTIONS } from '../modules'
 import type { SectionKey } from '../modules'
+import { TEAM_LABELS, hasFullAccess, visibleModules } from '../permissions'
 
 const ORDER: SectionKey[] = ['quality', 'security', 'environment']
 
@@ -45,6 +46,9 @@ function NavItem({
 
 export default function Layout() {
   const { user, logout } = useAuth()
+  const full = hasFullAccess(user)
+  const modules = visibleModules(user)
+  const sections = ORDER.filter((key) => modules.some((m) => m.section === key))
 
   return (
     <div className="flex min-h-screen">
@@ -62,11 +66,13 @@ export default function Layout() {
         </div>
 
         <nav className="flex-1 space-y-5 overflow-y-auto px-3 pb-4">
-          <div className="space-y-0.5">
-            <NavItem to="/" icon={LayoutDashboard} label="Dashboard" end />
-            <NavItem to="/analytics" icon={BarChart3} label="Analytics" />
-          </div>
-          {ORDER.map((key) => (
+          {full && (
+            <div className="space-y-0.5">
+              <NavItem to="/" icon={LayoutDashboard} label="Dashboard" end />
+              <NavItem to="/analytics" icon={BarChart3} label="Analytics" />
+            </div>
+          )}
+          {sections.map((key) => (
             <div key={key}>
               <div className="mb-1 flex items-center gap-2 px-3">
                 <span
@@ -78,10 +84,10 @@ export default function Layout() {
                 </span>
               </div>
               <div className="space-y-0.5">
-                {MODULES.filter((m) => m.section === key).map((m) => (
+                {modules.filter((m) => m.section === key).map((m) => (
                   <NavItem key={m.path} to={m.path} icon={m.icon} label={m.navLabel} />
                 ))}
-                {EXTERNAL_LINKS[key].map((link) => (
+                {full && EXTERNAL_LINKS[key].map((link) => (
                   <a
                     key={link.href}
                     href={link.href}
@@ -113,7 +119,10 @@ export default function Layout() {
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0">
               <div className="truncate text-sm font-medium">{user?.full_name}</div>
-              <div className="truncate text-xs text-ink-muted">{user?.email}</div>
+              <div className="truncate text-xs text-ink-muted">
+                {user ? `${TEAM_LABELS[user.team] ?? user.team} · ` : ''}
+                {user?.email}
+              </div>
             </div>
             <button
               onClick={logout}

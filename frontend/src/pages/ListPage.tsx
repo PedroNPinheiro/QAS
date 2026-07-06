@@ -1,12 +1,14 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight, Download, Plus, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { api } from '../api/client'
+import { useAuth } from '../auth'
 import { SeverityBadge, StatusBadge } from '../components/Badge'
 import { fmtDate, fmtDateTime } from '../format'
 import { SECTIONS } from '../modules'
 import type { ColumnDef, ModuleDef } from '../modules'
+import { canCreate, canViewModule, homePath } from '../permissions'
 
 type Rec = Record<string, unknown> & { id: number; reference: string }
 
@@ -45,6 +47,7 @@ function Cell({ column, record }: { column: ColumnDef; record: Rec }) {
 
 export default function ListPage({ module }: { module: ModuleDef }) {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [search, setSearch] = useState('')
   const [q, setQ] = useState('')
   const [status, setStatus] = useState('')
@@ -85,6 +88,8 @@ export default function ListPage({ module }: { module: ModuleDef }) {
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.page_size)) : 1
   const section = SECTIONS[module.section]
 
+  if (!canViewModule(user, module)) return <Navigate to={homePath(user)} replace />
+
   return (
     <div>
       <div className="mb-6 flex items-start justify-between gap-4">
@@ -118,13 +123,15 @@ export default function ListPage({ module }: { module: ModuleDef }) {
             <Download className="h-4 w-4" />
             Export Excel
           </button>
-          <button
-            onClick={() => navigate(`${module.path}/new`)}
-            className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-dark"
-          >
-            <Plus className="h-4 w-4" />
-            New {module.singular}
-          </button>
+          {canCreate(user) && (
+            <button
+              onClick={() => navigate(`${module.path}/new`)}
+              className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-dark"
+            >
+              <Plus className="h-4 w-4" />
+              New {module.singular}
+            </button>
+          )}
         </div>
       </div>
 
