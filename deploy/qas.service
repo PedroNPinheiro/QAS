@@ -1,0 +1,14 @@
+[Unit]
+Description=QAS — Quality, Security & Environment
+After=network.target postgresql.service docker.service
+
+[Service]
+User=pedro
+Group=pedro
+WorkingDirectory=/opt/QAS/backend
+ExecStart=/opt/QAS/backend/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
