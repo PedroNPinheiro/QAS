@@ -60,7 +60,7 @@ export default function Layout() {
           <div>
             <div className="text-base font-semibold leading-tight">QAS</div>
             <div className="text-[11px] leading-tight text-ink-muted">
-              Quality · Security · Environment
+              Quality · Safety · Environment
             </div>
           </div>
         </div>

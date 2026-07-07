@@ -138,7 +138,7 @@ export default function Dashboard() {
       <div className="mb-6">
         <h1 className="text-2xl font-semibold">Dashboard</h1>
         <p className="mt-1 text-sm text-ink-muted">
-          Quality, security and environment at a glance
+          Quality, safety and environment at a glance
         </p>
       </div>
 

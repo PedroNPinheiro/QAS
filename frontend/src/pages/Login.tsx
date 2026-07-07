@@ -35,7 +35,7 @@ export default function Login() {
             <ShieldCheck className="h-7 w-7" />
           </div>
           <h1 className="text-xl font-semibold">QAS</h1>
-          <p className="text-sm text-ink-muted">Quality · Security · Environment</p>
+          <p className="text-sm text-ink-muted">Quality · Safety · Environment</p>
         </div>
 
         <form

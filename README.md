@@ -1,18 +1,18 @@
-# QAS — Quality, Security & Environment
+# QAS — Quality, Safety & Environment
 
 Internal app for the Quality Department to manage:
 
 | Section | Modules | Source spreadsheet |
 |---|---|---|
 | **Quality** | Internal Non-Conformities (`NCI`), External/Supplier Non-Conformities (`NCE`) | RC.QCP.0020.003, RC.QCP.0020.009 |
-| **Security** | Work Accidents (`ACC`), Near Misses (`NM`) | LTI sheet, RC.QUA.0020.019 |
+|  **Safety** | Work Accidents (`ACC`), Near Misses (`NM`) | LTI sheet, RC.QUA.0020.019 |
 | **Environment** | Waste Production Records (`WST`) | RC.QUA.0020.014 |
 
 Forms match the department's Excel templates (in `docs/`), plus a light
 status/severity layer for dashboards. Every record gets an automatic reference
 in the spreadsheet-compatible format `PREFIX+MMYY.NN` (e.g. `NCI0726.01` =
 internal NC nr. 1 of July 2026, counters reset monthly), file attachments,
-full-text search, status filtering and Excel export (all four Quality/Security
+full-text search, status filtering and Excel export (all four Quality/Safety
 exports include a Root Cause Analysis column). The dashboard shows open
 counts, delayed near-miss actions, days without accident, waste kg/€ and
 12-month trends.
