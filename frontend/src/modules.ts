@@ -499,6 +499,7 @@ export const MODULES: ModuleDef[] = [
       { key: 'waste_type', label: 'Waste type' },
       { key: 'ler_code', label: 'LER' },
       { key: 'quantity_kg', label: 'Qty (kg)', kind: 'number' },
+      { key: 'egar', label: 'e-GAR' },
       { key: 'operator', label: 'Waste operator' },
       { key: 'invoiced_value', label: 'Value (€)', kind: 'number' },
     ],
