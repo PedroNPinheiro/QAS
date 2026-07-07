@@ -132,6 +132,7 @@ def upload_attachment(
         user=user,
         changes={"file": {"from": None, "to": attachment.filename}},
     )
+    db.commit()
     return attachment
 
 
@@ -157,3 +158,4 @@ def delete_attachment(
         changes={"file": {"from": attachment.filename, "to": None}},
     )
     db.delete(attachment)
+    db.commit()

@@ -261,6 +261,8 @@ def create_crud_router(
         if notify == "choose" and notify_emails:
             emails += [e for e in notify_emails]
         emails = list(dict.fromkeys(e.lower() for e in emails))
+        db.commit()  # commit before responding so an immediate refetch sees the record
+
         if emails:
             from .mailer import record_email, send_email  # lazy: avoids import cycle
 
@@ -305,7 +307,7 @@ def create_crud_router(
                 user=user,
                 changes=changes,
             )
-        db.flush()
+        db.commit()
         db.refresh(obj)
         return _serialize(obj)
 
@@ -336,5 +338,6 @@ def create_crud_router(
             user=user,
         )
         db.delete(obj)
+        db.commit()
 
     return router

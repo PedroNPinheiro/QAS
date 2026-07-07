@@ -39,7 +39,7 @@ def add_recipient(payload: NotificationRecipientCreate, db: Session = Depends(ge
         raise HTTPException(status_code=409, detail="This recipient is already on the list")
     recipient = models.NotificationRecipient(entity_type=payload.entity_type, email=email)
     db.add(recipient)
-    db.flush()
+    db.commit()
     return recipient
 
 
@@ -49,3 +49,4 @@ def remove_recipient(recipient_id: int, db: Session = Depends(get_db)):
     if recipient is None:
         raise HTTPException(status_code=404, detail="Recipient not found")
     db.delete(recipient)
+    db.commit()

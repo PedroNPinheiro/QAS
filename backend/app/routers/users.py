@@ -40,7 +40,7 @@ def create_user(
         team=payload.team,
     )
     db.add(user)
-    db.flush()
+    db.commit()
 
     from ..mailer import send_email, welcome_email  # lazy: avoids import cycle
 
@@ -61,5 +61,5 @@ def update_user(user_id: int, payload: UserUpdate, db: Session = Depends(get_db)
         user.hashed_password = hash_password(data.pop("password"))
     for key, value in data.items():
         setattr(user, key, value)
-    db.flush()
+    db.commit()
     return user
