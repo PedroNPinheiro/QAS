@@ -9,7 +9,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 from pydantic import BaseModel
-from sqlalchemy import Boolean as SABoolean, func, or_, select
+from sqlalchemy import Boolean as SABoolean, Integer as SAInteger, cast, func, or_, select
 from sqlalchemy.orm import Session
 
 from .audit import diff_changes, log_audit
@@ -181,6 +181,11 @@ def create_crud_router(
         return stmt
 
     def apply_sort(stmt, sort: str):
+        if not sort and ref_style == "yearly":
+            # yearly registers (quality tests): the number IS the order
+            year_num = cast(func.split_part(model.reference, "_", 2), SAInteger)
+            seq_num = cast(func.split_part(model.reference, "_", 1), SAInteger)
+            return stmt.order_by(year_num.desc(), seq_num.desc())
         sort = sort or f"-{date_field}"
         field = sort.lstrip("-")
         if field not in sortable:
