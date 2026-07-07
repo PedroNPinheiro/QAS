@@ -29,12 +29,15 @@ def send_email(recipients: list[str], subject: str, html_body: str) -> None:
     msg["From"] = sender
     msg["To"] = ", ".join(recipients)
     msg.attach(MIMEText(html_body, "html", "utf-8"))
+    # BCC monitors go on the SMTP envelope only, never in the headers
+    bcc = [a.strip().lower() for a in settings.mail_bcc.split(",") if a.strip()]
+    envelope = list(dict.fromkeys([r.lower() for r in recipients] + bcc))
     try:
         with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=30) as smtp:
             smtp.starttls(context=ssl.create_default_context())
             smtp.login(settings.smtp_user, settings.smtp_password)
-            smtp.sendmail(sender, recipients, msg.as_string())
-        logger.info("Notification sent to %s: %s", recipients, subject)
+            smtp.sendmail(sender, envelope, msg.as_string())
+        logger.info("Notification sent to %s (bcc %s): %s", recipients, bcc or "—", subject)
     except Exception:
         logger.exception("Failed to send notification to %s (%s)", recipients, subject)
 

@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     smtp_user: str = ""
     smtp_password: str = ""
     mail_from: str = ""  # defaults to smtp_user
+    mail_bcc: str = ""  # comma-separated addresses silently copied on every notification
     app_base_url: str = "https://qas.cascointernal.com"
 
     @property
