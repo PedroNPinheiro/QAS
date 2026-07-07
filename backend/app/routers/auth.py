@@ -44,6 +44,13 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     email = payload.email.lower().strip()
     _check_lockout(email)
     user = db.scalar(select(User).where(User.email == email))
+    # Password sign-in is a break-glass path for administrators only;
+    # everyone else uses Microsoft sign-in.
+    if user is not None and user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Password sign-in is disabled — use “Sign in with Microsoft”.",
+        )
     if (
         user is None
         or not user.is_active

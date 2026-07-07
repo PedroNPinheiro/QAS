@@ -109,7 +109,7 @@ function UserModal({
             />
             {isNew && (
               <span className="mt-1 block text-xs text-ink-muted">
-                Leave blank for Microsoft sign-in only.
+                Leave blank — users sign in with Microsoft. Only administrators can use a password.
               </span>
             )}
           </label>
@@ -221,7 +221,8 @@ export default function Users() {
         <div>
           <h1 className="text-2xl font-semibold">Users</h1>
           <p className="mt-1 text-sm text-ink-muted">
-            Manage who can access the app. Local passwords for now — SSO can be added later.
+            Manage who can access the app. Users sign in with their Microsoft 365 account — only
+            people listed here can enter.
           </p>
         </div>
         <button
