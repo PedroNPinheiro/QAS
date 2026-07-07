@@ -15,6 +15,7 @@ interface AuthState {
   user: User | null
   loading: boolean
   login: (email: string, password: string) => Promise<void>
+  loginWithToken: (token: string) => Promise<void>
   logout: () => void
 }
 
@@ -22,6 +23,7 @@ const AuthContext = createContext<AuthState>({
   user: null,
   loading: true,
   login: async () => {},
+  loginWithToken: async () => {},
   logout: () => {},
 })
 
@@ -47,13 +49,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(await api.get('/auth/me'))
   }
 
+  // Used by the Microsoft SSO callback handoff
+  const loginWithToken = async (token: string) => {
+    setToken(token)
+    setUser(await api.get('/auth/me'))
+  }
+
   const logout = () => {
     clearToken()
     setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithToken, logout }}>
       {children}
     </AuthContext.Provider>
   )

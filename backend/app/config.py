@@ -20,6 +20,11 @@ class Settings(BaseSettings):
     mail_bcc: str = ""  # comma-separated addresses silently copied on every notification
     app_base_url: str = "https://qas.cascointernal.com"
 
+    # Microsoft Entra ID SSO (unset = Microsoft sign-in disabled)
+    ms_client_id: str = ""
+    ms_tenant_id: str = ""
+    ms_client_secret: str = ""
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

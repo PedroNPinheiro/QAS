@@ -33,7 +33,7 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db)):
     user = User(
         email=email,
         full_name=payload.full_name,
-        hashed_password=hash_password(payload.password),
+        hashed_password=hash_password(payload.password) if payload.password else None,
         role=payload.role,
         team=payload.team,
     )

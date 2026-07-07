@@ -98,16 +98,20 @@ function UserModal({
           </label>
           <label className="block">
             <span className="mb-1 block text-sm font-medium text-ink-secondary">
-              {isNew ? 'Password' : 'New password (leave blank to keep)'}
+              {isNew ? 'Password (optional)' : 'New password (leave blank to keep)'}
             </span>
             <input
               type="password"
-              required={isNew}
               minLength={8}
               value={draft.password}
               onChange={(e) => setDraft({ ...draft, password: e.target.value })}
               className={inputCls}
             />
+            {isNew && (
+              <span className="mt-1 block text-xs text-ink-muted">
+                Leave blank for Microsoft sign-in only.
+              </span>
+            )}
           </label>
           <label className="block">
             <span className="mb-1 block text-sm font-medium text-ink-secondary">Team</span>
@@ -189,7 +193,7 @@ export default function Users() {
         return api.post('/users', {
           email: d.email,
           full_name: d.full_name,
-          password: d.password,
+          password: d.password || null,
           role: d.role,
           team: d.team,
         })

@@ -40,7 +40,8 @@ class UserRead(BaseModel):
 class UserCreate(BaseModel):
     email: EmailStr
     full_name: str
-    password: str = Field(min_length=8)
+    # No password = the user can only sign in with Microsoft
+    password: str | None = Field(default=None, min_length=8)
     role: Role = "user"
     team: Team = "quality"
 
