@@ -32,7 +32,7 @@ function NavItem({
       className={({ isActive }) =>
         `group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
           isActive
-            ? 'bg-accent/10 font-medium text-accent-dark'
+            ? 'bg-surface font-medium text-accent-dark shadow-sm ring-1 ring-ink/10'
             : 'text-ink-secondary hover:bg-ink/5 hover:text-ink'
         }`
       }
@@ -70,8 +70,12 @@ export default function Layout() {
             </div>
           )}
           {sections.map((key) => (
-            <div key={key}>
-              <div className="mb-1 px-3">
+            <div
+              key={key}
+              className="rounded-xl p-1.5"
+              style={{ backgroundColor: SECTIONS[key].soft }}
+            >
+              <div className="mb-1 px-2 pt-1">
                 <span
                   className="text-[11px] font-semibold uppercase tracking-wider"
                   style={{ color: SECTIONS[key].text }}
