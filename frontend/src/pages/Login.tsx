@@ -1,4 +1,3 @@
-import { ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth'
@@ -31,9 +30,7 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-page px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center">
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-surface">
-            <ShieldCheck className="h-7 w-7" />
-          </div>
+          <img src="/casco-mark.png" alt="CASCO Pet" className="mb-3 h-16 w-16 rounded-xl" />
           <h1 className="text-xl font-semibold">QAS</h1>
           <p className="text-sm text-ink-muted">Quality · Safety · Environment</p>
         </div>

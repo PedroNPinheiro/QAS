@@ -4,7 +4,6 @@ import {
   LayoutDashboard,
   LogOut,
   ScrollText,
-  ShieldCheck,
   Users,
 } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router-dom'
@@ -54,9 +53,7 @@ export default function Layout() {
     <div className="flex min-h-screen">
       <aside className="fixed inset-y-0 flex w-64 flex-col border-r border-hairline bg-surface">
         <div className="flex items-center gap-3 px-5 pb-5 pt-6">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-surface">
-            <ShieldCheck className="h-5 w-5" />
-          </div>
+          <img src="/casco-mark.png" alt="CASCO Pet" className="h-9 w-9 rounded-lg" />
           <div>
             <div className="text-base font-semibold leading-tight">QAS</div>
             <div className="text-[11px] leading-tight text-ink-muted">
