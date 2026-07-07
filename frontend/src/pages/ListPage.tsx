@@ -71,6 +71,9 @@ export default function ListPage({ module }: { module: ModuleDef }) {
   const [search, setSearch] = useState('')
   const [q, setQ] = useState('')
   const [status, setStatus] = useState('')
+  const [fieldFilters, setFieldFilters] = useState<Record<string, string>>({})
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
   const [page, setPage] = useState(1)
 
   // Debounce free-text search
@@ -87,17 +90,31 @@ export default function ListPage({ module }: { module: ModuleDef }) {
     setSearch('')
     setQ('')
     setStatus('')
+    setFieldFilters({})
+    setDateFrom('')
+    setDateTo('')
     setPage(1)
   }, [module.path])
 
   const params = new URLSearchParams({ page: String(page), page_size: '20' })
   if (q) params.set('q', q)
   if (status) params.set('status', status)
+  Object.entries(fieldFilters).forEach(([k, v]) => v && params.set(`f_${k}`, v))
+  if (dateFrom) params.set('date_from', dateFrom)
+  if (dateTo) params.set('date_to', dateTo)
 
   const { data, isLoading } = useQuery<Page>({
-    queryKey: ['list', module.api, q, status, page],
+    queryKey: ['list', module.api, q, status, fieldFilters, dateFrom, dateTo, page],
     queryFn: () => api.get(`${module.api}?${params}`),
     placeholderData: keepPreviousData,
+  })
+
+  const needsDistinct = (module.filters ?? []).some((f) => !f.options)
+  const { data: distinctOptions } = useQuery<Record<string, string[]>>({
+    queryKey: ['filter-options', module.api],
+    queryFn: () => api.get(`${module.api}/filter-options`),
+    enabled: needsDistinct,
+    staleTime: 5 * 60_000,
   })
 
   const statusOptions =
@@ -135,6 +152,9 @@ export default function ListPage({ module }: { module: ModuleDef }) {
               const p = new URLSearchParams()
               if (q) p.set('q', q)
               if (status) p.set('status', status)
+              Object.entries(fieldFilters).forEach(([k, v]) => v && p.set(`f_${k}`, v))
+              if (dateFrom) p.set('date_from', dateFrom)
+              if (dateTo) p.set('date_to', dateTo)
               api.download(
                 `${module.api}/export.xlsx?${p}`,
                 `${module.entityType}-${new Date().toISOString().slice(0, 10)}.xlsx`,
@@ -157,7 +177,7 @@ export default function ListPage({ module }: { module: ModuleDef }) {
         </div>
       </div>
 
-      <div className="mb-4 flex items-center gap-2">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="relative flex-1 max-w-sm">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
           <input
@@ -184,6 +204,52 @@ export default function ListPage({ module }: { module: ModuleDef }) {
             ))}
           </select>
         )}
+        {(module.filters ?? []).map((f) => {
+          const options =
+            f.options ?? (distinctOptions?.[f.name] ?? []).map((v) => ({ value: v, label: v }))
+          return (
+            <select
+              key={f.name}
+              value={fieldFilters[f.name] ?? ''}
+              onChange={(e) => {
+                setFieldFilters((prev) => ({ ...prev, [f.name]: e.target.value }))
+                setPage(1)
+              }}
+              className="max-w-44 rounded-lg border border-hairline bg-surface px-3 py-2 text-sm outline-none transition-colors focus:border-accent"
+            >
+              <option value="">All — {f.label}</option>
+              {options.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          )
+        })}
+        <label className="flex items-center gap-1.5 text-xs text-ink-muted">
+          From
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => {
+              setDateFrom(e.target.value)
+              setPage(1)
+            }}
+            className="rounded-lg border border-hairline bg-surface px-2 py-2 text-sm text-ink outline-none transition-colors focus:border-accent"
+          />
+        </label>
+        <label className="flex items-center gap-1.5 text-xs text-ink-muted">
+          To
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => {
+              setDateTo(e.target.value)
+              setPage(1)
+            }}
+            className="rounded-lg border border-hairline bg-surface px-2 py-2 text-sm text-ink outline-none transition-colors focus:border-accent"
+          />
+        </label>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-hairline bg-surface">

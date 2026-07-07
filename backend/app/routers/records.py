@@ -18,6 +18,7 @@ router.include_router(
         display_name="Internal Non-Conformity",
         frontend_path="/quality/internal-nc",
         notify="choose",
+        filter_fields=("sector", "severity"),
     ),
     prefix="/quality/internal-nc",
 )
@@ -34,6 +35,7 @@ router.include_router(
         date_field="date_detected",
         display_name="External Non-Conformity",
         frontend_path="/quality/external-nc",
+        filter_fields=("supplier", "severity"),
     ),
     prefix="/quality/external-nc",
 )
@@ -52,6 +54,7 @@ router.include_router(
         display_name="Quality Test",
         frontend_path="/quality/test-reports",
         notify="fixed",
+        filter_fields=("tested_by", "derogation"),
     ),
     prefix="/quality/test-reports",
 )
@@ -68,6 +71,7 @@ router.include_router(
         date_field="occurred_at",
         display_name="Work Accident",
         frontend_path="/security/accidents",
+        filter_fields=("department", "severity", "nature"),
     ),
     prefix="/security/accidents",
 )
@@ -84,6 +88,7 @@ router.include_router(
         date_field="occurred_date",
         display_name="Near Miss",
         frontend_path="/security/near-misses",
+        filter_fields=("event_type", "location", "risk_level"),
     ),
     prefix="/security/near-misses",
 )
@@ -100,6 +105,7 @@ router.include_router(
         date_field="collection_date",
         display_name="Waste Record",
         frontend_path="/environment/waste",
+        filter_fields=("waste_type", "operator", "hazardous"),
     ),
     prefix="/environment/waste",
 )

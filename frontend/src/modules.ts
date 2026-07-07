@@ -38,6 +38,13 @@ export interface FormSection {
   fields: FieldDef[]
 }
 
+export interface FilterDef {
+  name: string
+  label: string
+  /** Fixed options; omitted = distinct values fetched from the API. */
+  options?: Option[]
+}
+
 export interface ColumnDef {
   key: string
   label: string
@@ -70,6 +77,8 @@ export interface ModuleDef {
   requireFilesWhen?: (values: Record<string, unknown>) => string | null
   /** Show a "notify users by email" picker on the create form. */
   notifyPicker?: boolean
+  /** Dropdown filters shown on the list page. */
+  filters?: FilterDef[]
 }
 
 export const SECTIONS: Record<
@@ -267,6 +276,10 @@ export const MODULES: ModuleDef[] = [
       { key: 'severity', label: 'Severity', kind: 'severity' },
       { key: 'status', label: 'Status', kind: 'status' },
     ],
+    filters: [
+      { name: 'sector', label: 'Sector' },
+      { name: 'severity', label: 'Severity', options: NC_SEVERITY },
+    ],
     defaults: { severity: 'minor', status: 'open' },
     form: [
       {
@@ -330,6 +343,10 @@ export const MODULES: ModuleDef[] = [
       { key: 'severity', label: 'Severity', kind: 'severity' },
       { key: 'status', label: 'Status', kind: 'status' },
     ],
+    filters: [
+      { name: 'supplier', label: 'Supplier' },
+      { name: 'severity', label: 'Severity', options: NC_SEVERITY },
+    ],
     defaults: { severity: 'minor', status: 'open', has_control_range: false },
     form: [
       {
@@ -388,6 +405,10 @@ export const MODULES: ModuleDef[] = [
       { key: 'products_affected', label: 'Products affected' },
       { key: 'derogation', label: 'Derogation', kind: 'bool' },
     ],
+    filters: [
+      { name: 'tested_by', label: 'Tested by' },
+      { name: 'derogation', label: 'Derogation', options: [{ value: 'true', label: 'Yes' }, { value: 'false', label: 'No' }] },
+    ],
     defaults: { derogation: false },
     form: [
       {
@@ -430,6 +451,20 @@ export const MODULES: ModuleDef[] = [
       { key: 'days_lost', label: 'Days lost', kind: 'number' },
       { key: 'severity', label: 'Severity', kind: 'severity' },
       { key: 'status', label: 'Status', kind: 'status' },
+    ],
+    filters: [
+      { name: 'department', label: 'Department' },
+      { name: 'nature', label: 'Nature' },
+      {
+        name: 'severity',
+        label: 'Severity',
+        options: [
+          { value: 'first_aid', label: 'First aid' },
+          { value: 'minor', label: 'Minor' },
+          { value: 'serious', label: 'Serious' },
+          { value: 'fatal', label: 'Fatal' },
+        ],
+      },
     ],
     defaults: {
       severity: 'first_aid',
@@ -509,6 +544,19 @@ export const MODULES: ModuleDef[] = [
       { key: 'risk_level', label: 'Risk', kind: 'severity' },
       { key: 'status', label: 'Status', kind: 'status' },
     ],
+    filters: [
+      { name: 'event_type', label: 'Event type' },
+      { name: 'location', label: 'Location' },
+      {
+        name: 'risk_level',
+        label: 'Risk',
+        options: [
+          { value: 'low', label: 'Low' },
+          { value: 'medium', label: 'Medium' },
+          { value: 'high', label: 'High' },
+        ],
+      },
+    ],
     defaults: { risk_level: 'low', status: 'on_time' },
     form: [
       {
@@ -568,6 +616,11 @@ export const MODULES: ModuleDef[] = [
       { key: 'egar', label: 'e-GAR' },
       { key: 'operator', label: 'Waste operator' },
       { key: 'invoiced_value', label: 'Value (€)', kind: 'number' },
+    ],
+    filters: [
+      { name: 'waste_type', label: 'Waste type' },
+      { name: 'operator', label: 'Operator' },
+      { name: 'hazardous', label: 'Hazardous', options: [{ value: 'true', label: 'Yes' }, { value: 'false', label: 'No' }] },
     ],
     defaults: { hazardous: false },
     form: [

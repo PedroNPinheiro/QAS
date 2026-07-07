@@ -1,15 +1,15 @@
 import io
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Type
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 from pydantic import BaseModel
-from sqlalchemy import func, or_, select
+from sqlalchemy import Boolean as SABoolean, func, or_, select
 from sqlalchemy.orm import Session
 
 from .audit import diff_changes, log_audit
@@ -139,6 +139,7 @@ def create_crud_router(
     ref_style: str = "monthly",
     display_name: str = "record",
     frontend_path: str = "",
+    filter_fields: tuple[str, ...] = (),
     notify: str | None = None,  # None | "fixed" (recipients table) | "choose" (creator picks users)
 ) -> APIRouter:
     """Build a standard CRUD router: paginated list with search/filter/sort,
@@ -147,34 +148,62 @@ def create_crud_router(
     router = APIRouter()
     sortable = {c.name for c in model.__table__.columns}
 
-    def apply_filters(stmt, q: str | None, status: str | None):
+    date_col = getattr(model, date_field)
+
+    def apply_filters(stmt, q: str | None, status: str | None, request: Request | None = None):
         if q:
             clauses = [getattr(model, f).ilike(f"%{q}%") for f in search_fields]
             clauses.append(model.reference.ilike(f"%{q}%"))
             stmt = stmt.where(or_(*clauses))
         if status and hasattr(model, "status"):
             stmt = stmt.where(model.status == status)
+        if request is not None:
+            for key, value in request.query_params.items():
+                if not key.startswith("f_") or not value:
+                    continue
+                fname = key[2:]
+                if fname not in filter_fields:
+                    continue
+                col = getattr(model, fname)
+                if isinstance(model.__table__.columns[fname].type, SABoolean):
+                    stmt = stmt.where(col.is_(value.lower() == "true"))
+                else:
+                    stmt = stmt.where(col == value)
+            date_from = request.query_params.get("date_from")
+            date_to = request.query_params.get("date_to")
+            try:
+                if date_from:
+                    stmt = stmt.where(date_col >= date.fromisoformat(date_from))
+                if date_to:
+                    stmt = stmt.where(date_col < date.fromisoformat(date_to) + timedelta(days=1))
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid date filter")
         return stmt
 
     def apply_sort(stmt, sort: str):
+        sort = sort or f"-{date_field}"
         field = sort.lstrip("-")
         if field not in sortable:
-            field, sort = "created_at", "-created_at"
+            field, sort = date_field, f"-{date_field}"
         col = getattr(model, field)
-        return stmt.order_by(col.desc() if sort.startswith("-") else col.asc())
+        # id as tiebreak keeps same-day records in register (import) order
+        if sort.startswith("-"):
+            return stmt.order_by(col.desc(), model.id.desc())
+        return stmt.order_by(col.asc(), model.id.asc())
 
     @router.get("", response_model=Page[read_schema])
     def list_records(
+        request: Request,
         q: str | None = None,
         status: str | None = None,
         page: int = Query(1, ge=1),
         page_size: int = Query(20, ge=1, le=200),
-        sort: str = "-created_at",
+        sort: str = "",
         db: Session = Depends(get_db),
         user: User = Depends(get_current_user),
     ):
         require_view(user, entity_type)
-        stmt = apply_filters(select(model), q, status)
+        stmt = apply_filters(select(model), q, status, request)
         total = db.scalar(select(func.count()).select_from(stmt.subquery()))
         stmt = apply_sort(stmt, sort).offset((page - 1) * page_size).limit(page_size)
         items = [_serialize(o) for o in db.scalars(stmt).all()]
@@ -182,14 +211,15 @@ def create_crud_router(
 
     @router.get("/export.xlsx")
     def export_xlsx(
+        request: Request,
         q: str | None = None,
         status: str | None = None,
-        sort: str = "-created_at",
+        sort: str = "",
         db: Session = Depends(get_db),
         user: User = Depends(get_current_user),
     ):
         require_view(user, entity_type)
-        stmt = apply_sort(apply_filters(select(model), q, status), sort)
+        stmt = apply_sort(apply_filters(select(model), q, status, request), sort)
         rows = [
             read_schema.model_validate(_serialize(o)).model_dump()
             for o in db.scalars(stmt).all()
@@ -209,6 +239,23 @@ def create_crud_router(
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
+
+    @router.get("/filter-options")
+    def filter_options(
+        db: Session = Depends(get_db),
+        user: User = Depends(get_current_user),
+    ):
+        require_view(user, entity_type)
+        out: dict[str, list] = {}
+        for fname in filter_fields:
+            if isinstance(model.__table__.columns[fname].type, SABoolean):
+                continue
+            col = getattr(model, fname)
+            values = db.scalars(
+                select(col).where(col.isnot(None)).distinct().order_by(col).limit(300)
+            ).all()
+            out[fname] = [v for v in values if str(v).strip()]
+        return out
 
     @router.get("/{record_id}", response_model=read_schema)
     def get_record(
