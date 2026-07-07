@@ -65,7 +65,7 @@ const MODULES: ModuleAnalytics[] = [
   },
   {
     value: 'test_report',
-    label: 'Test Reports & Derogations',
+    label: 'Quality Tests & Derogations',
     metrics: [{ value: 'count', label: 'Number of tests', unit: '' }],
     dims: [
       { value: 'tested_by', label: 'Tested by' },

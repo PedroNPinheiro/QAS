@@ -12,6 +12,7 @@ import AuditPage from './pages/AuditPage'
 import Dashboard from './pages/Dashboard'
 import ListPage from './pages/ListPage'
 import Login from './pages/Login'
+import NotificationsPage from './pages/NotificationsPage'
 import RecordPage from './pages/RecordPage'
 import Users from './pages/Users'
 import { hasFullAccess, homePath } from './permissions'
@@ -85,6 +86,14 @@ createRoot(document.getElementById('root')!).render(
                 element={
                   <AdminOnly>
                     <AuditPage />
+                  </AdminOnly>
+                }
+              />
+              <Route
+                path="/notifications"
+                element={
+                  <AdminOnly>
+                    <NotificationsPage />
                   </AdminOnly>
                 }
               />

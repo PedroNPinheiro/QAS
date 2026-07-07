@@ -11,6 +11,14 @@ class Settings(BaseSettings):
     upload_dir: str = "uploads"
     max_upload_mb: int = 25
 
+    # Email notifications (no SMTP host configured = notifications disabled)
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    mail_from: str = ""  # defaults to smtp_user
+    app_base_url: str = "https://qas.cascointernal.com"
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

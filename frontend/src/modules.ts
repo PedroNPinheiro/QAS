@@ -66,6 +66,8 @@ export interface ModuleDef {
   /** If set, creating a record requires staged attachments when this returns
    * a message (shown to the user as the reason files are mandatory). */
   requireFilesWhen?: (values: Record<string, unknown>) => string | null
+  /** Show a "notify users by email" picker on the create form. */
+  notifyPicker?: boolean
 }
 
 export const SECTIONS: Record<
@@ -252,6 +254,7 @@ export const MODULES: ModuleDef[] = [
     section: 'quality',
     icon: FileWarning,
     hasStatus: true,
+    notifyPicker: true,
     columns: [
       { key: 'reference', label: 'Reference' },
       { key: 'date_detected', label: 'Date', kind: 'date' },
@@ -368,9 +371,9 @@ export const MODULES: ModuleDef[] = [
     path: '/quality/test-reports',
     api: '/quality/test-reports',
     entityType: 'test_report',
-    title: 'Test Reports & Product Derogations',
-    navLabel: 'Test Reports',
-    singular: 'Test Report',
+    title: 'Quality Tests & Product Derogations',
+    navLabel: 'Quality Tests',
+    singular: 'Quality Test',
     section: 'quality',
     icon: FlaskConical,
     hasStatus: false,

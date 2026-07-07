@@ -230,6 +230,16 @@ class TestReport(RecordMixin, CreatedByMixin, Base):
     created_by: Mapped[User | None] = relationship()
 
 
+class NotificationRecipient(Base):
+    """Fixed 'notify on create' recipients per module (admin-managed)."""
+
+    __tablename__ = "notification_recipients"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    entity_type: Mapped[str] = mapped_column(String(30), index=True)
+    email: Mapped[str] = mapped_column(String(255))
+
+
 class Attachment(Base):
     __tablename__ = "attachments"
 

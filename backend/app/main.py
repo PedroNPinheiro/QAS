@@ -10,9 +10,17 @@ from sqlalchemy import text
 
 from .config import settings
 from .database import Base, SessionLocal, engine
-from .routers import analytics, attachments, audit, auth, dashboard, records, users
+from .routers import analytics, attachments, audit, auth, dashboard, notifications, records, users
 
 logger = logging.getLogger("qas")
+
+# Make app loggers (qas.*) visible under uvicorn's default logging config
+_handler = logging.StreamHandler()
+_handler.setFormatter(logging.Formatter("%(levelname)s:     %(name)s — %(message)s"))
+_qas_root = logging.getLogger("qas")
+if not _qas_root.handlers:
+    _qas_root.addHandler(_handler)
+    _qas_root.setLevel(logging.INFO)
 
 
 @asynccontextmanager
@@ -45,6 +53,8 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 
 app.include_router(auth.router)
 app.include_router(users.router)
+app.include_router(users.options_router)
+app.include_router(notifications.router)
 app.include_router(records.router)
 app.include_router(attachments.router)
 app.include_router(dashboard.router)

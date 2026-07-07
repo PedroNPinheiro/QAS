@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  BellRing,
   ExternalLink,
   LayoutDashboard,
   LogOut,
@@ -113,6 +114,7 @@ export default function Layout() {
               </div>
               <div className="space-y-0.5">
                 <NavItem to="/users" icon={Users} label="Users" />
+                <NavItem to="/notifications" icon={BellRing} label="Notifications" />
                 <NavItem to="/audit" icon={ScrollText} label="Audit Log" />
               </div>
             </div>

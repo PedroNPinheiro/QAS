@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Check, Pencil, Trash2, X } from 'lucide-react'
+import { ArrowLeft, BellRing, Check, Pencil, Trash2, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api/client'
@@ -178,6 +178,13 @@ export default function RecordPage({ module }: { module: ModuleDef }) {
   const [saved, setSaved] = useState(false)
   const [dirty, setDirty] = useState(false)
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
+  const [notifyIds, setNotifyIds] = useState<number[]>([])
+
+  const { data: userOptions = [] } = useQuery<{ id: number; full_name: string; email: string }[]>({
+    queryKey: ['user-options'],
+    queryFn: () => api.get('/users/options'),
+    enabled: isNew && Boolean(module.notifyPicker),
+  })
   // Existing records open in reader mode; editing must be explicit.
   const [editing, setEditing] = useState(isNew)
 
@@ -286,7 +293,9 @@ export default function RecordPage({ module }: { module: ModuleDef }) {
           }
         }
         setError(null)
-        save.mutate(toPayload(module, values, isNew ? null : allowed))
+        const payload = toPayload(module, values, isNew ? null : allowed)
+        if (isNew && module.notifyPicker) payload.notify_user_ids = notifyIds
+        save.mutate(payload)
       }}
     >
       <div className="mb-6 flex items-start justify-between gap-4">
@@ -406,6 +415,47 @@ export default function RecordPage({ module }: { module: ModuleDef }) {
               setDirty(true)
             }}
           />
+        )}
+        {isNew && module.notifyPicker && userOptions.length > 0 && (
+          <div className="rounded-xl border border-hairline bg-surface p-5">
+            <h3 className="mb-1 flex items-center gap-2 text-sm font-semibold">
+              <BellRing className="h-4 w-4 text-ink-muted" />
+              Notify by email
+              {notifyIds.length > 0 && (
+                <span className="text-xs font-normal text-ink-muted">
+                  ({notifyIds.length} selected)
+                </span>
+              )}
+            </h3>
+            <p className="mb-3 text-xs text-ink-muted">
+              Selected people receive an email with this record when it is created.
+            </p>
+            <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
+              {userOptions
+                .filter((u) => u.id !== user?.id)
+                .map((u) => (
+                  <label
+                    key={u.id}
+                    className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-ink/5"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={notifyIds.includes(u.id)}
+                      onChange={(e) =>
+                        setNotifyIds((ids) =>
+                          e.target.checked ? [...ids, u.id] : ids.filter((i) => i !== u.id),
+                        )
+                      }
+                      className="h-4 w-4"
+                    />
+                    <span className="min-w-0">
+                      <span className="block truncate">{u.full_name}</span>
+                      <span className="block truncate text-xs text-ink-muted">{u.email}</span>
+                    </span>
+                  </label>
+                ))}
+            </div>
+          </div>
         )}
         {!isNew && id && (
           <>

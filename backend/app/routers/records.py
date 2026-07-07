@@ -15,6 +15,9 @@ router.include_router(
         read_schema=schemas.InternalNCRead,
         search_fields=("description", "po", "project", "sector", "designer"),
         date_field="date_detected",
+        display_name="Internal Non-Conformity",
+        frontend_path="/quality/internal-nc",
+        notify="choose",
     ),
     prefix="/quality/internal-nc",
 )
@@ -29,6 +32,8 @@ router.include_router(
         read_schema=schemas.ExternalNCRead,
         search_fields=("description", "supplier", "po", "item_reference", "item_designation"),
         date_field="date_detected",
+        display_name="External Non-Conformity",
+        frontend_path="/quality/external-nc",
     ),
     prefix="/quality/external-nc",
 )
@@ -44,6 +49,9 @@ router.include_router(
         search_fields=("description", "result", "products_affected", "tested_by", "first_derogation_po"),
         date_field="test_date",
         ref_style="yearly",
+        display_name="Quality Test",
+        frontend_path="/quality/test-reports",
+        notify="fixed",
     ),
     prefix="/quality/test-reports",
 )
@@ -58,6 +66,8 @@ router.include_router(
         read_schema=schemas.AccidentRead,
         search_fields=("description", "injured_person", "department", "body_part", "nature"),
         date_field="occurred_at",
+        display_name="Work Accident",
+        frontend_path="/security/accidents",
     ),
     prefix="/security/accidents",
 )
@@ -72,6 +82,8 @@ router.include_router(
         read_schema=schemas.NearMissRead,
         search_fields=("description", "location", "event_type", "owner"),
         date_field="occurred_date",
+        display_name="Near Miss",
+        frontend_path="/security/near-misses",
     ),
     prefix="/security/near-misses",
 )
@@ -86,6 +98,8 @@ router.include_router(
         read_schema=schemas.WasteRead,
         search_fields=("waste_type", "ler_code", "waste_description", "operator", "egar"),
         date_field="collection_date",
+        display_name="Waste Record",
+        frontend_path="/environment/waste",
     ),
     prefix="/environment/waste",
 )

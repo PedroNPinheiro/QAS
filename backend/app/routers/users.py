@@ -2,12 +2,22 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..auth import hash_password, require_admin
+from ..auth import get_current_user, hash_password, require_admin
 from ..database import get_db
 from ..models import User
-from ..schemas import UserCreate, UserRead, UserUpdate
+from ..schemas import UserCreate, UserOption, UserRead, UserUpdate
 
 router = APIRouter(prefix="/api/users", tags=["users"], dependencies=[Depends(require_admin)])
+
+# Non-admin endpoint: active users as notification choices (id, name, email)
+options_router = APIRouter(prefix="/api/users", tags=["users"])
+
+
+@options_router.get("/options", response_model=list[UserOption])
+def user_options(db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+    return db.scalars(
+        select(User).where(User.is_active.is_(True)).order_by(User.full_name)
+    ).all()
 
 
 @router.get("", response_model=list[UserRead])

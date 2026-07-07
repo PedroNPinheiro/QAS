@@ -97,7 +97,8 @@ class InternalNCBase(BaseModel):
 
 
 class InternalNCCreate(InternalNCBase):
-    pass
+    # App users to notify by email about this new NC (chosen by the creator)
+    notify_user_ids: list[int] = []
 
 
 class InternalNCUpdate(InternalNCBase):
@@ -296,6 +297,29 @@ class AttachmentRead(BaseModel):
     content_type: str | None
     size_bytes: int
     created_at: datetime
+
+
+# -------------------------------------------------------------- notifications
+
+class UserOption(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    full_name: str
+    email: str
+
+
+class NotificationRecipientRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    entity_type: str
+    email: str
+
+
+class NotificationRecipientCreate(BaseModel):
+    entity_type: str
+    email: EmailStr
 
 
 # ---------------------------------------------------------------------- audit

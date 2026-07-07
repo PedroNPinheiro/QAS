@@ -3,7 +3,7 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Type
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
@@ -17,7 +17,7 @@ from .auth import get_current_user, require_admin
 from .permissions import editable_fields, require_create, require_view
 from .config import settings
 from .database import get_db
-from .models import Attachment, User
+from .models import Attachment, NotificationRecipient, User
 from .schemas import Page
 from .sequences import next_reference
 
@@ -137,6 +137,9 @@ def create_crud_router(
     search_fields: tuple[str, ...],
     date_field: str,
     ref_style: str = "monthly",
+    display_name: str = "record",
+    frontend_path: str = "",
+    notify: str | None = None,  # None | "fixed" (recipients table) | "choose" (creator picks users)
 ) -> APIRouter:
     """Build a standard CRUD router: paginated list with search/filter/sort,
     Excel export, get, create (with auto reference), update, delete (admin)."""
@@ -198,7 +201,7 @@ def create_crud_router(
             + [f for f in read_schema.model_fields if f not in meta]
             + ["created_at", "created_by_name"]
         )
-        title = entity_type.replace("_", " ").title().replace("Nc", "NC")
+        title = display_name if display_name != "record" else entity_type.replace("_", " ").title()
         buf = _build_xlsx(title, fields, rows)
         filename = f"{entity_type}-{date.today().isoformat()}.xlsx"
         return StreamingResponse(
@@ -222,11 +225,14 @@ def create_crud_router(
     @router.post("", response_model=read_schema, status_code=201)
     def create_record(
         payload: create_schema,
+        background: BackgroundTasks,
         db: Session = Depends(get_db),
         user: User = Depends(get_current_user),
     ):
         require_create(user, entity_type)
-        obj = model(**payload.model_dump())
+        data = payload.model_dump()
+        notify_user_ids = data.pop("notify_user_ids", [])
+        obj = model(**data)
         # Reference month follows the record's own date, not today
         obj.reference = next_reference(db, ref_prefix, getattr(obj, date_field, None), ref_style)
         obj.created_by_id = user.id
@@ -241,6 +247,39 @@ def create_crud_router(
             action="create",
             user=user,
         )
+
+        # Email notifications (sent after the response, failures only logged)
+        emails: list[str] = []
+        if notify == "fixed":
+            emails = list(
+                db.scalars(
+                    select(NotificationRecipient.email).where(
+                        NotificationRecipient.entity_type == entity_type
+                    )
+                )
+            )
+        elif notify == "choose" and notify_user_ids:
+            emails = list(
+                db.scalars(
+                    select(User.email).where(
+                        User.id.in_(notify_user_ids), User.is_active.is_(True)
+                    )
+                )
+            )
+        if emails:
+            from .mailer import record_email, send_email  # lazy: avoids import cycle
+
+            meta = {"id", "created_at", "updated_at", "reference"}
+            fields = [f for f in read_schema.model_fields if f not in meta]
+            record = read_schema.model_validate(_serialize(obj)).model_dump()
+            subject, body = record_email(
+                display_name=display_name,
+                record=record,
+                fields=fields,
+                record_path=f"{frontend_path}/{obj.id}",
+            )
+            background.add_task(send_email, emails, subject, body)
+
         return _serialize(obj)
 
     @router.put("/{record_id}", response_model=read_schema)
