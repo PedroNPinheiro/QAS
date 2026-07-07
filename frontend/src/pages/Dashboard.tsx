@@ -19,9 +19,10 @@ const C = {
   grid: P.grid,
   axis: P.axis,
   muted: P.muted,
-  internal: P.blue,
+  // Section identity: Quality = orange, Safety = blue
+  internal: P.orange,
   external: P.aqua,
-  accidents: P.orange,
+  accidents: P.blue,
   nearMisses: P.violet,
   wasteNonHaz: P.green,
   wasteHaz: P.violet,

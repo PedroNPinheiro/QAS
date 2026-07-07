@@ -71,12 +71,11 @@ export default function Layout() {
           )}
           {sections.map((key) => (
             <div key={key}>
-              <div className="mb-1 flex items-center gap-2 px-3">
+              <div className="mb-1 px-3">
                 <span
-                  className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: SECTIONS[key].color }}
-                />
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">
+                  className="text-[11px] font-semibold uppercase tracking-wider"
+                  style={{ color: SECTIONS[key].text }}
+                >
                   {SECTIONS[key].label}
                 </span>
               </div>

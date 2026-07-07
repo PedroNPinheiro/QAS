@@ -68,10 +68,14 @@ export interface ModuleDef {
   requireFilesWhen?: (values: Record<string, unknown>) => string | null
 }
 
-export const SECTIONS: Record<SectionKey, { label: string; color: string }> = {
-  quality: { label: 'Quality', color: 'var(--color-quality)' },
-  security: { label: 'Safety', color: 'var(--color-security)' },
-  environment: { label: 'Environment', color: 'var(--color-environment)' },
+export const SECTIONS: Record<SectionKey, { label: string; color: string; text: string }> = {
+  quality: { label: 'Quality', color: 'var(--color-quality)', text: 'var(--color-quality-text)' },
+  security: { label: 'Safety', color: 'var(--color-security)', text: 'var(--color-security-text)' },
+  environment: {
+    label: 'Environment',
+    color: 'var(--color-environment)',
+    text: 'var(--color-environment-text)',
+  },
 }
 
 /** External tools linked from the sidebar, per section. */

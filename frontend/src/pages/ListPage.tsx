@@ -96,9 +96,11 @@ export default function ListPage({ module }: { module: ModuleDef }) {
     <div>
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
-          <div className="mb-1 flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: section.color }} />
-            <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+          <div className="mb-1">
+            <span
+              className="text-xs font-semibold uppercase tracking-wider"
+              style={{ color: section.text }}
+            >
               {section.label}
             </span>
           </div>

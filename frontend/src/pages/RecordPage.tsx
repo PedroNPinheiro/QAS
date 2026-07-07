@@ -302,7 +302,7 @@ export default function RecordPage({ module }: { module: ModuleDef }) {
             <h1 className="text-2xl font-semibold">{title}</h1>
             <span
               className="rounded-full px-2.5 py-0.5 text-xs font-medium"
-              style={{ backgroundColor: `${section.color}18`, color: section.color }}
+              style={{ backgroundColor: `color-mix(in srgb, ${section.color} 12%, transparent)`, color: section.text }}
             >
               {section.label}
             </span>

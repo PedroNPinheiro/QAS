@@ -9,12 +9,15 @@
   --color-hairline: #e1e0d9;
   --color-baseline: #c3c2b7;
 
-  --color-quality: #2a78d6;
-  --color-quality-soft: #eaf2fc;
-  --color-security: #eb6834;
-  --color-security-soft: #fdefe9;
+  --color-quality: #eb6834;
+  --color-quality-soft: #fdefe9;
+  --color-quality-text: #c2410c;
+  --color-security: #2a78d6;
+  --color-security-soft: #eaf2fc;
+  --color-security-text: #1c5cab;
   --color-environment: #008300;
   --color-environment-soft: #e9f4e9;
+  --color-environment-text: #006300;
 
   --color-accent: #2a78d6;
   --color-accent-dark: #1c5cab;
