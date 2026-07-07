@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -26,7 +26,9 @@ def list_users(db: Session = Depends(get_db)):
 
 
 @router.post("", response_model=UserRead, status_code=201)
-def create_user(payload: UserCreate, db: Session = Depends(get_db)):
+def create_user(
+    payload: UserCreate, background: BackgroundTasks, db: Session = Depends(get_db)
+):
     email = payload.email.lower()
     if db.scalar(select(User).where(User.email == email)):
         raise HTTPException(status_code=409, detail="A user with this email already exists")
@@ -39,6 +41,13 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db)):
     )
     db.add(user)
     db.flush()
+
+    from ..mailer import send_email, welcome_email  # lazy: avoids import cycle
+
+    subject, body = welcome_email(
+        full_name=user.full_name, team=user.team, has_password=payload.password is not None
+    )
+    background.add_task(send_email, [user.email], subject, body)
     return user
 
 

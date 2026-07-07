@@ -56,6 +56,42 @@ def _fmt(field: str, value) -> str:
     return str(value)
 
 
+def welcome_email(*, full_name: str, team: str, has_password: bool) -> tuple[str, str]:
+    """Build (subject, html) for a newly created user account."""
+    subject = "[QAS] Your account is ready"
+    url = settings.app_base_url.rstrip("/")
+    team_lines = {
+        "quality": "You have access to all modules: Quality, Safety and Environment.",
+        "purchasing": "You have access to External Non-Conformities, where you fill in the supplier follow-up section.",
+        "warehouse": "You have access to External Non-Conformities, where you fill in the closure section.",
+    }
+    if has_password:
+        how = "Sign in with your email address and the password you received from the Quality team — or simply use <strong>Sign in with Microsoft</strong> with your usual 365 account."
+    else:
+        how = "Click <strong>Sign in with Microsoft</strong> and use your usual 365 account — no separate password needed."
+
+    body = f"""
+<div style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:#f4f4f0;padding:24px">
+  <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #e1e0d9;border-radius:12px;overflow:hidden">
+    <div style="padding:18px 22px;border-bottom:1px solid #e1e0d9">
+      <div style="font-size:12px;color:#898781">QAS — Quality, Safety &amp; Environment</div>
+      <div style="font-size:18px;font-weight:600;color:#1a1a19;margin-top:2px">Welcome, {html.escape(full_name)}</div>
+    </div>
+    <div style="padding:18px 22px;font-size:14px;color:#1a1a19;line-height:1.55">
+      <p style="margin:0 0 10px">An account has been created for you in <strong>QAS</strong>, CASCO Pet's app for quality, safety and environment records.</p>
+      <p style="margin:0 0 10px">{team_lines.get(team, '')}</p>
+      <p style="margin:0 0 16px">{how}</p>
+      <a href="{url}" style="display:inline-block;background:#2a78d6;color:#ffffff;text-decoration:none;
+         padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600">Open QAS</a>
+    </div>
+  </div>
+  <div style="max-width:560px;margin:10px auto 0;color:#898781;font-size:11px">
+    Automatic notification from QAS. Questions? Contact the Quality team.
+  </div>
+</div>"""
+    return subject, body
+
+
 def record_email(
     *,
     display_name: str,
