@@ -151,7 +151,7 @@ export default function Layout() {
       </aside>
 
       <main className="ml-64 flex-1">
-        <div className="mx-auto max-w-6xl px-8 py-8">
+        <div className="mx-auto max-w-[88rem] px-8 py-8">
           <Outlet />
         </div>
       </main>

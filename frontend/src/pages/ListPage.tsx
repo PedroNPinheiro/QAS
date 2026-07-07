@@ -39,12 +39,30 @@ function Cell({ column, record }: { column: ColumnDef; record: Rec }) {
     default: {
       const text = String(value)
       return (
-        <span className="block max-w-72 truncate" title={text}>
+        <span className="block truncate" title={text}>
           {text.charAt(0).toUpperCase() + text.slice(1)}
         </span>
       )
     }
   }
+}
+
+// Fixed-layout column widths: the "wide" column takes the remaining space,
+// so tables always fit without horizontal scrolling.
+const COL_WIDTH: Record<string, string> = {
+  date: '6.2rem',
+  datetime: '9.5rem',
+  number: '6rem',
+  severity: '6.5rem',
+  status: '8.5rem',
+  bool: '6.5rem',
+  text: '10rem',
+}
+
+function colWidth(c: ColumnDef): string | undefined {
+  if (c.wide) return undefined
+  if (c.key === 'reference') return '7.5rem'
+  return COL_WIDTH[c.kind ?? 'text']
 }
 
 export default function ListPage({ module }: { module: ModuleDef }) {
@@ -169,13 +187,19 @@ export default function ListPage({ module }: { module: ModuleDef }) {
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-hairline bg-surface">
-        <table className="w-full text-sm">
+        <table className="w-full table-fixed text-sm">
+          <colgroup>
+            {module.columns.map((c) => (
+              <col key={c.key} style={{ width: colWidth(c) }} />
+            ))}
+          </colgroup>
           <thead>
             <tr className="border-b border-hairline text-left">
               {module.columns.map((c) => (
                 <th
                   key={c.key}
-                  className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-ink-muted"
+                  className="truncate px-3 py-3 text-xs font-semibold uppercase tracking-wide text-ink-muted"
+                  title={c.label}
                 >
                   {c.label}
                 </th>
@@ -203,9 +227,11 @@ export default function ListPage({ module }: { module: ModuleDef }) {
                   className="cursor-pointer transition-colors hover:bg-ink/[0.025]"
                 >
                   {module.columns.map((c) => (
-                    <td key={c.key} className="px-4 py-3">
+                    <td key={c.key} className="overflow-hidden px-3 py-3">
                       {c.key === 'reference' ? (
-                        <span className="font-medium text-accent-dark">{record.reference}</span>
+                        <span className="block truncate font-medium text-accent-dark">
+                          {record.reference}
+                        </span>
                       ) : (
                         <Cell column={c} record={record} />
                       )}

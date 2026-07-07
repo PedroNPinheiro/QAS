@@ -42,6 +42,8 @@ export interface ColumnDef {
   key: string
   label: string
   kind?: 'text' | 'date' | 'datetime' | 'status' | 'severity' | 'number' | 'bool'
+  /** This column absorbs the remaining table width (one per module). */
+  wide?: boolean
 }
 
 export type SectionKey = 'quality' | 'security' | 'environment'
@@ -260,7 +262,7 @@ export const MODULES: ModuleDef[] = [
       { key: 'date_detected', label: 'Date', kind: 'date' },
       { key: 'sector', label: 'Sector' },
       { key: 'po', label: 'PO' },
-      { key: 'description', label: 'Description' },
+      { key: 'description', label: 'Description', wide: true },
       { key: 'cost', label: 'Cost (€)', kind: 'number' },
       { key: 'severity', label: 'Severity', kind: 'severity' },
       { key: 'status', label: 'Status', kind: 'status' },
@@ -324,7 +326,7 @@ export const MODULES: ModuleDef[] = [
       { key: 'date_detected', label: 'Date', kind: 'date' },
       { key: 'supplier', label: 'Supplier' },
       { key: 'item_designation', label: 'Item' },
-      { key: 'description', label: 'NC description' },
+      { key: 'description', label: 'NC description', wide: true },
       { key: 'severity', label: 'Severity', kind: 'severity' },
       { key: 'status', label: 'Status', kind: 'status' },
     ],
@@ -381,7 +383,7 @@ export const MODULES: ModuleDef[] = [
       { key: 'reference', label: 'Test nr.' },
       { key: 'test_date', label: 'Date', kind: 'date' },
       { key: 'tested_by', label: 'Tested by' },
-      { key: 'description', label: 'Test description' },
+      { key: 'description', label: 'Test description', wide: true },
       { key: 'result', label: 'Result' },
       { key: 'products_affected', label: 'Products affected' },
       { key: 'derogation', label: 'Derogation', kind: 'bool' },
@@ -503,7 +505,7 @@ export const MODULES: ModuleDef[] = [
       { key: 'occurred_date', label: 'Date', kind: 'date' },
       { key: 'event_type', label: 'Event' },
       { key: 'location', label: 'Location' },
-      { key: 'description', label: 'Description' },
+      { key: 'description', label: 'Description', wide: true },
       { key: 'risk_level', label: 'Risk', kind: 'severity' },
       { key: 'status', label: 'Status', kind: 'status' },
     ],
@@ -560,7 +562,7 @@ export const MODULES: ModuleDef[] = [
     columns: [
       { key: 'reference', label: 'Reference' },
       { key: 'collection_date', label: 'Collection date', kind: 'date' },
-      { key: 'waste_type', label: 'Waste type' },
+      { key: 'waste_type', label: 'Waste type', wide: true },
       { key: 'ler_code', label: 'LER' },
       { key: 'quantity_kg', label: 'Qty (kg)', kind: 'number' },
       { key: 'egar', label: 'e-GAR' },
