@@ -212,6 +212,24 @@ class AuditLog(Base):
     )
 
 
+class TestReport(RecordMixin, CreatedByMixin, Base):
+    """Test report / product derogation register (numbered per year, e.g. 5_2026)."""
+
+    __tablename__ = "test_reports"
+
+    test_date: Mapped[date] = mapped_column(Date)
+    tested_by: Mapped[str | None] = mapped_column(String(255))
+    description: Mapped[str] = mapped_column(Text)  # test description
+    result: Mapped[str | None] = mapped_column(Text)
+    products_affected: Mapped[str | None] = mapped_column(Text)
+    observations: Mapped[str | None] = mapped_column(Text)
+    derogation: Mapped[bool] = mapped_column(Boolean, default=False)
+    first_derogation_po: Mapped[str | None] = mapped_column(Text)
+    last_derogation_po: Mapped[str | None] = mapped_column(Text)
+
+    created_by: Mapped[User | None] = relationship()
+
+
 class Attachment(Base):
     __tablename__ = "attachments"
 

@@ -256,6 +256,34 @@ class WasteRead(RecordRead, WasteBase):
     pass
 
 
+# ---------------------------------------------------------------- test report
+
+class TestReportBase(BaseModel):
+    test_date: date
+    tested_by: str | None = None
+    description: str = Field(min_length=1)
+    result: str | None = None
+    products_affected: str | None = None
+    observations: str | None = None
+    derogation: bool = False
+    first_derogation_po: str | None = None
+    last_derogation_po: str | None = None
+
+
+class TestReportCreate(TestReportBase):
+    pass
+
+
+class TestReportUpdate(TestReportBase):
+    test_date: date | None = None
+    description: str | None = None
+    derogation: bool | None = None
+
+
+class TestReportRead(RecordRead, TestReportBase):
+    pass
+
+
 # ---------------------------------------------------------------- attachments
 
 class AttachmentRead(BaseModel):

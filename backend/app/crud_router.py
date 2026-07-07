@@ -39,6 +39,9 @@ HEADER_OVERRIDES = {
     "quantity_kg": "Quantity (kg)",
     "act_notified": "Communicated to ACT",
     "insurance_notified": "Insurance Participated",
+    "derogation": "Product Derogation",
+    "first_derogation_po": "First Derogation PO",
+    "last_derogation_po": "Last Derogation PO",
     "date_detected": "Date",
     "created_by_name": "Created By",
     "nature": "Nature of Injury",
@@ -133,6 +136,7 @@ def create_crud_router(
     read_schema: Type[BaseModel],
     search_fields: tuple[str, ...],
     date_field: str,
+    ref_style: str = "monthly",
 ) -> APIRouter:
     """Build a standard CRUD router: paginated list with search/filter/sort,
     Excel export, get, create (with auto reference), update, delete (admin)."""
@@ -224,7 +228,7 @@ def create_crud_router(
         require_create(user, entity_type)
         obj = model(**payload.model_dump())
         # Reference month follows the record's own date, not today
-        obj.reference = next_reference(db, ref_prefix, getattr(obj, date_field, None))
+        obj.reference = next_reference(db, ref_prefix, getattr(obj, date_field, None), ref_style)
         obj.created_by_id = user.id
         db.add(obj)
         db.flush()

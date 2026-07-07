@@ -34,6 +34,8 @@ function Cell({ column, record }: { column: ColumnDef; record: Rec }) {
       return <SeverityBadge value={String(value)} />
     case 'number':
       return <span className="tabular-nums">{Number(value).toLocaleString()}</span>
+    case 'bool':
+      return value ? <>Yes</> : <span className="text-ink-muted">—</span>
     default: {
       const text = String(value)
       return (

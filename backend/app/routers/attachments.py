@@ -19,6 +19,7 @@ router = APIRouter(prefix="/api/attachments", tags=["attachments"])
 ENTITY_MODELS = {
     "internal_nc": models.InternalNonConformity,
     "external_nc": models.ExternalNonConformity,
+    "test_report": models.TestReport,
     "accident": models.WorkAccident,
     "near_miss": models.NearMiss,
     "waste": models.WasteRecord,

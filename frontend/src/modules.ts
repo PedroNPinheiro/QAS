@@ -1,6 +1,7 @@
 import {
   AlertTriangle,
   FileWarning,
+  FlaskConical,
   PackageX,
   Recycle,
   ShieldAlert,
@@ -40,7 +41,7 @@ export interface FormSection {
 export interface ColumnDef {
   key: string
   label: string
-  kind?: 'text' | 'date' | 'datetime' | 'status' | 'severity' | 'number'
+  kind?: 'text' | 'date' | 'datetime' | 'status' | 'severity' | 'number' | 'bool'
 }
 
 export type SectionKey = 'quality' | 'security' | 'environment'
@@ -341,6 +342,48 @@ export const MODULES: ModuleDef[] = [
           { name: 'closure_date', label: 'Closure date', type: 'date' },
           { name: 'status', label: 'Status', type: 'select', options: RECORD_STATUS, required: true },
           { name: 'notes', label: 'Notes', type: 'textarea' },
+        ],
+      },
+    ],
+  },
+  {
+    path: '/quality/test-reports',
+    api: '/quality/test-reports',
+    entityType: 'test_report',
+    title: 'Test Reports & Product Derogations',
+    navLabel: 'Test Reports',
+    singular: 'Test Report',
+    section: 'quality',
+    icon: FlaskConical,
+    hasStatus: false,
+    columns: [
+      { key: 'reference', label: 'Test nr.' },
+      { key: 'test_date', label: 'Date', kind: 'date' },
+      { key: 'tested_by', label: 'Tested by' },
+      { key: 'description', label: 'Test description' },
+      { key: 'result', label: 'Result' },
+      { key: 'products_affected', label: 'Products affected' },
+      { key: 'derogation', label: 'Derogation', kind: 'bool' },
+    ],
+    defaults: { derogation: false },
+    form: [
+      {
+        title: 'Test',
+        fields: [
+          { name: 'test_date', label: 'Date', type: 'date', required: true },
+          { name: 'tested_by', label: 'Tested by', type: 'text', suggestions: ['Qualidade'] },
+          { name: 'products_affected', label: 'Product(s) affected', type: 'text' },
+          { name: 'description', label: 'Test description', type: 'textarea', required: true },
+          { name: 'result', label: 'Test result', type: 'textarea' },
+          { name: 'observations', label: 'Observations', type: 'textarea' },
+        ],
+      },
+      {
+        title: 'Product derogation',
+        fields: [
+          { name: 'derogation', label: 'Product derogation', type: 'checkbox' },
+          { name: 'first_derogation_po', label: 'First derogation PO', type: 'textarea' },
+          { name: 'last_derogation_po', label: 'Last derogation PO', type: 'textarea' },
         ],
       },
     ],

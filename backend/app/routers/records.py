@@ -35,6 +35,21 @@ router.include_router(
 
 router.include_router(
     create_crud_router(
+        model=models.TestReport,
+        ref_prefix="TR",
+        entity_type="test_report",
+        create_schema=schemas.TestReportCreate,
+        update_schema=schemas.TestReportUpdate,
+        read_schema=schemas.TestReportRead,
+        search_fields=("description", "result", "products_affected", "tested_by", "first_derogation_po"),
+        date_field="test_date",
+        ref_style="yearly",
+    ),
+    prefix="/quality/test-reports",
+)
+
+router.include_router(
+    create_crud_router(
         model=models.WorkAccident,
         ref_prefix="ACC",
         entity_type="accident",

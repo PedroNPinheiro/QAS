@@ -18,6 +18,7 @@ TEAMS = ("quality", "purchasing", "warehouse")
 MODULE_TEAMS: dict[str, set[str]] = {
     "internal_nc": {"quality"},
     "external_nc": {"quality", "purchasing", "warehouse"},
+    "test_report": {"quality"},
     "accident": {"quality"},
     "near_miss": {"quality"},
     "waste": {"quality"},

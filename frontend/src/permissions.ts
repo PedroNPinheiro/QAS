@@ -7,6 +7,7 @@ import type { ModuleDef } from './modules'
 const MODULE_TEAMS: Record<string, string[]> = {
   internal_nc: ['quality'],
   external_nc: ['quality', 'purchasing', 'warehouse'],
+  test_report: ['quality'],
   accident: ['quality'],
   near_miss: ['quality'],
   waste: ['quality'],

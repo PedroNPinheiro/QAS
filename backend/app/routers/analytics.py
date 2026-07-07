@@ -37,6 +37,15 @@ CONFIG = {
             "location": m.ExternalNonConformity.location,
         },
     },
+    "test_report": {
+        "model": m.TestReport,
+        "date": m.TestReport.test_date,
+        "metrics": {},
+        "dims": {
+            "tested_by": m.TestReport.tested_by,
+            "derogation": m.TestReport.derogation,
+        },
+    },
     "accident": {
         "model": m.WorkAccident,
         "date": m.WorkAccident.occurred_at,
@@ -141,9 +150,14 @@ def analytics(
     monthly = [{"month": mo, "value": by_month.get(mo, 0.0)} for mo in _month_range(start, end)]
 
     # Breakdown by dimension
+    BOOL_DIM_LABELS = {
+        "hazardous": ("Hazardous", "Non-hazardous"),
+        "derogation": ("With derogation", "No derogation"),
+    }
     dim_col = dims[group_by]
-    if group_by == "hazardous":
-        dim_expr = case((dim_col.is_(True), "Hazardous"), else_="Non-hazardous")
+    if group_by in BOOL_DIM_LABELS:
+        yes, no = BOOL_DIM_LABELS[group_by]
+        dim_expr = case((dim_col.is_(True), yes), else_=no)
     else:
         dim_expr = func.coalesce(dim_col, "—")
     rows = db.execute(
