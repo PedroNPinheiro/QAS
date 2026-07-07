@@ -132,6 +132,7 @@ def create_crud_router(
     update_schema: Type[BaseModel],
     read_schema: Type[BaseModel],
     search_fields: tuple[str, ...],
+    date_field: str,
 ) -> APIRouter:
     """Build a standard CRUD router: paginated list with search/filter/sort,
     Excel export, get, create (with auto reference), update, delete (admin)."""
@@ -222,7 +223,8 @@ def create_crud_router(
     ):
         require_create(user, entity_type)
         obj = model(**payload.model_dump())
-        obj.reference = next_reference(db, ref_prefix)
+        # Reference month follows the record's own date, not today
+        obj.reference = next_reference(db, ref_prefix, getattr(obj, date_field, None))
         obj.created_by_id = user.id
         db.add(obj)
         db.flush()

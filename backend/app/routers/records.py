@@ -14,6 +14,7 @@ router.include_router(
         update_schema=schemas.InternalNCUpdate,
         read_schema=schemas.InternalNCRead,
         search_fields=("description", "po", "project", "sector", "designer"),
+        date_field="date_detected",
     ),
     prefix="/quality/internal-nc",
 )
@@ -27,6 +28,7 @@ router.include_router(
         update_schema=schemas.ExternalNCUpdate,
         read_schema=schemas.ExternalNCRead,
         search_fields=("description", "supplier", "po", "item_reference", "item_designation"),
+        date_field="date_detected",
     ),
     prefix="/quality/external-nc",
 )
@@ -40,6 +42,7 @@ router.include_router(
         update_schema=schemas.AccidentUpdate,
         read_schema=schemas.AccidentRead,
         search_fields=("description", "injured_person", "department", "body_part", "nature"),
+        date_field="occurred_at",
     ),
     prefix="/security/accidents",
 )
@@ -53,6 +56,7 @@ router.include_router(
         update_schema=schemas.NearMissUpdate,
         read_schema=schemas.NearMissRead,
         search_fields=("description", "location", "event_type", "owner"),
+        date_field="occurred_date",
     ),
     prefix="/security/near-misses",
 )
@@ -66,6 +70,7 @@ router.include_router(
         update_schema=schemas.WasteUpdate,
         read_schema=schemas.WasteRead,
         search_fields=("waste_type", "ler_code", "waste_description", "operator", "egar"),
+        date_field="collection_date",
     ),
     prefix="/environment/waste",
 )
