@@ -62,6 +62,9 @@ export interface ModuleDef {
   form: FormSection[]
   defaults: Record<string, unknown>
   hasStatus: boolean
+  /** If set, creating a record requires staged attachments when this returns
+   * a message (shown to the user as the reason files are mandatory). */
+  requireFilesWhen?: (values: Record<string, unknown>) => string | null
 }
 
 export const SECTIONS: Record<SectionKey, { label: string; color: string }> = {
@@ -290,6 +293,10 @@ export const MODULES: ModuleDef[] = [
     section: 'quality',
     icon: PackageX,
     hasStatus: true,
+    requireFilesWhen: (values) =>
+      values.has_control_range
+        ? '“Has control range” is checked — attach the control range document before creating this NC.'
+        : null,
     columns: [
       { key: 'reference', label: 'Reference' },
       { key: 'date_detected', label: 'Date', kind: 'date' },

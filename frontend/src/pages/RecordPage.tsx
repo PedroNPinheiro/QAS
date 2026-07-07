@@ -277,6 +277,15 @@ export default function RecordPage({ module }: { module: ModuleDef }) {
     <form
       onSubmit={(e) => {
         e.preventDefault()
+        if (isNew && module.requireFilesWhen) {
+          const reason = module.requireFilesWhen(values)
+          if (reason && pendingFiles.length === 0) {
+            setError(reason)
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+            return
+          }
+        }
+        setError(null)
         save.mutate(toPayload(module, values, isNew ? null : allowed))
       }}
     >

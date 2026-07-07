@@ -9,7 +9,9 @@
       "Bash(curl -s -X POST https://qas.cascointernal.com/api/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"admin@example.com\",\"password\":\"admin123\"}')",
       "Bash(python3 -c \"import sys,json;print\\('login over HTTPS OK' if 'access_token' in json.load\\(sys.stdin\\) else 'FAILED'\\)\")",
       "Bash(curl -s -o /dev/null -w \"/analytics: %{http_code}\\\\n\" https://qas.cascointernal.com/analytics)",
-      "Bash(ssh -i ~/.ssh/qas_deploy -o IdentitiesOnly=yes root@46.225.95.197 'git pull --ff-only 2>&1 | tail -3 && chmod +x deploy/update.sh && git log --oneline -1 && echo PULL-FLOW-OK')"
+      "Bash(ssh -i ~/.ssh/qas_deploy -o IdentitiesOnly=yes root@46.225.95.197 'git pull --ff-only 2>&1 | tail -3 && chmod +x deploy/update.sh && git log --oneline -1 && echo PULL-FLOW-OK')",
+      "Bash(printf 'control range doc\\\\n')",
+      "Bash(node cr_check.mjs)"
     ]
   }
 }
