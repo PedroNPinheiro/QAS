@@ -231,7 +231,7 @@ def create_crud_router(
     ):
         require_create(user, entity_type)
         data = payload.model_dump()
-        notify_user_ids = data.pop("notify_user_ids", [])
+        notify_emails = data.pop("notify_emails", [])
         obj = model(**data)
         # Reference month follows the record's own date, not today
         obj.reference = next_reference(db, ref_prefix, getattr(obj, date_field, None), ref_style)
@@ -258,14 +258,8 @@ def create_crud_router(
                     )
                 )
             )
-        elif notify == "choose" and notify_user_ids:
-            emails = list(
-                db.scalars(
-                    select(User.email).where(
-                        User.id.in_(notify_user_ids), User.is_active.is_(True)
-                    )
-                )
-            )
+        elif notify == "choose" and notify_emails:
+            emails = list(dict.fromkeys(e.lower() for e in notify_emails))
         if emails:
             from .mailer import record_email, send_email  # lazy: avoids import cycle
 

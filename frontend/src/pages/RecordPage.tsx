@@ -178,13 +178,26 @@ export default function RecordPage({ module }: { module: ModuleDef }) {
   const [saved, setSaved] = useState(false)
   const [dirty, setDirty] = useState(false)
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
-  const [notifyIds, setNotifyIds] = useState<number[]>([])
+  const [notifyEmails, setNotifyEmails] = useState<string[]>([])
+  const [notifyDraft, setNotifyDraft] = useState('')
 
+  // App users' emails as typing suggestions for the notify field
   const { data: userOptions = [] } = useQuery<{ id: number; full_name: string; email: string }[]>({
     queryKey: ['user-options'],
     queryFn: () => api.get('/users/options'),
     enabled: isNew && Boolean(module.notifyPicker),
   })
+
+  const addNotifyEmails = (raw: string) => {
+    const candidates = raw
+      .split(/[,;\s]+/)
+      .map((e) => e.trim().toLowerCase())
+      .filter((e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e))
+    if (candidates.length) {
+      setNotifyEmails((list) => [...new Set([...list, ...candidates])])
+      setNotifyDraft('')
+    }
+  }
   // Existing records open in reader mode; editing must be explicit.
   const [editing, setEditing] = useState(isNew)
 
@@ -294,7 +307,12 @@ export default function RecordPage({ module }: { module: ModuleDef }) {
         }
         setError(null)
         const payload = toPayload(module, values, isNew ? null : allowed)
-        if (isNew && module.notifyPicker) payload.notify_user_ids = notifyIds
+        if (isNew && module.notifyPicker) {
+          // include a valid address still sitting in the input box
+          const pending = notifyDraft.trim().toLowerCase()
+          const extra = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pending) ? [pending] : []
+          payload.notify_emails = [...new Set([...notifyEmails, ...extra])]
+        }
         save.mutate(payload)
       }}
     >
@@ -416,44 +434,73 @@ export default function RecordPage({ module }: { module: ModuleDef }) {
             }}
           />
         )}
-        {isNew && module.notifyPicker && userOptions.length > 0 && (
+        {isNew && module.notifyPicker && (
           <div className="rounded-xl border border-hairline bg-surface p-5">
             <h3 className="mb-1 flex items-center gap-2 text-sm font-semibold">
               <BellRing className="h-4 w-4 text-ink-muted" />
               Notify by email
-              {notifyIds.length > 0 && (
+              {notifyEmails.length > 0 && (
                 <span className="text-xs font-normal text-ink-muted">
-                  ({notifyIds.length} selected)
+                  ({notifyEmails.length} recipient{notifyEmails.length === 1 ? '' : 's'})
                 </span>
               )}
             </h3>
             <p className="mb-3 text-xs text-ink-muted">
-              Selected people receive an email with this record when it is created.
+              These addresses receive an email with this record when it is created. Type an
+              address and press Enter — several can be added.
             </p>
-            <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
-              {userOptions
-                .filter((u) => u.id !== user?.id)
-                .map((u) => (
-                  <label
-                    key={u.id}
-                    className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-ink/5"
+            {notifyEmails.length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-1.5">
+                {notifyEmails.map((e) => (
+                  <span
+                    key={e}
+                    className="inline-flex items-center gap-1 rounded-full border border-hairline bg-page px-2.5 py-1 text-xs"
                   >
-                    <input
-                      type="checkbox"
-                      checked={notifyIds.includes(u.id)}
-                      onChange={(e) =>
-                        setNotifyIds((ids) =>
-                          e.target.checked ? [...ids, u.id] : ids.filter((i) => i !== u.id),
-                        )
-                      }
-                      className="h-4 w-4"
-                    />
-                    <span className="min-w-0">
-                      <span className="block truncate">{u.full_name}</span>
-                      <span className="block truncate text-xs text-ink-muted">{u.email}</span>
-                    </span>
-                  </label>
+                    {e}
+                    <button
+                      type="button"
+                      title="Remove"
+                      onClick={() => setNotifyEmails((list) => list.filter((x) => x !== e))}
+                      className="rounded-full p-0.5 text-ink-muted transition-colors hover:bg-ink/10 hover:text-ink"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
                 ))}
+              </div>
+            )}
+            <div className="flex max-w-md items-center gap-2">
+              <input
+                type="text"
+                value={notifyDraft}
+                onChange={(e) => setNotifyDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    addNotifyEmails(notifyDraft)
+                  }
+                }}
+                onBlur={() => addNotifyEmails(notifyDraft)}
+                list="notify-suggestions"
+                placeholder="name@cascopet.com"
+                className="w-full rounded-lg border border-hairline bg-surface px-3 py-2 text-sm outline-none transition-colors focus:border-accent"
+              />
+              <datalist id="notify-suggestions">
+                {userOptions
+                  .filter((u) => u.id !== user?.id && !notifyEmails.includes(u.email))
+                  .map((u) => (
+                    <option key={u.id} value={u.email}>
+                      {u.full_name}
+                    </option>
+                  ))}
+              </datalist>
+              <button
+                type="button"
+                onClick={() => addNotifyEmails(notifyDraft)}
+                className="shrink-0 rounded-lg border border-hairline px-3 py-2 text-sm font-medium text-ink-secondary transition-colors hover:bg-ink/5"
+              >
+                Add
+              </button>
             </div>
           </div>
         )}

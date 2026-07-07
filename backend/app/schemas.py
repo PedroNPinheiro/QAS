@@ -97,8 +97,8 @@ class InternalNCBase(BaseModel):
 
 
 class InternalNCCreate(InternalNCBase):
-    # App users to notify by email about this new NC (chosen by the creator)
-    notify_user_ids: list[int] = []
+    # Email addresses to notify about this new NC (typed by the creator)
+    notify_emails: list[EmailStr] = []
 
 
 class InternalNCUpdate(InternalNCBase):
