@@ -10,7 +10,7 @@ import {
   YAxis,
 } from 'recharts'
 import { api } from '../api/client'
-import { C, Card, ChartTooltip, StatTile, axisProps, fmtMonth } from '../components/charts'
+import { Card, ChartTooltip, StatTile, fmtMonth, useChartTheme } from '../components/charts'
 
 // ---------------------------------------------------------------- definitions
 
@@ -184,6 +184,7 @@ function MonthYearPicker({
 // ---------------------------------------------------------------------- page
 
 export default function AnalyticsPage() {
+  const { C, axisProps } = useChartTheme()
   const now = new Date()
   const years = useMemo(() => {
     const ys = []
@@ -368,7 +369,7 @@ export default function AnalyticsPage() {
                   <YAxis allowDecimals={false} {...axisProps} axisLine={false} />
                   <Tooltip
                     content={<ChartTooltip unit={unit} withYear={showYearInTicks} />}
-                    cursor={{ fill: 'rgba(11,11,11,0.03)' }}
+                    cursor={{ fill: 'rgba(128,128,128,0.06)' }}
                   />
                   <Bar
                     dataKey="value"

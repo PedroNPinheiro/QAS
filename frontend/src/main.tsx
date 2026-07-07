@@ -15,6 +15,7 @@ import Login from './pages/Login'
 import RecordPage from './pages/RecordPage'
 import Users from './pages/Users'
 import { hasFullAccess, homePath } from './permissions'
+import { ThemeProvider } from './theme'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -35,6 +36,7 @@ function FullAccessOnly({ children }: { children: React.ReactNode }) {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
+    <ThemeProvider>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <BrowserRouter>
@@ -92,6 +94,7 @@ createRoot(document.getElementById('root')!).render(
         </BrowserRouter>
       </AuthProvider>
     </QueryClientProvider>
+    </ThemeProvider>
     </ErrorBoundary>
   </StrictMode>,
 )

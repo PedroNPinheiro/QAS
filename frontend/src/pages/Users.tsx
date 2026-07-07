@@ -56,7 +56,7 @@ function UserModal({
 }) {
   const isNew = draft.id === undefined
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 px-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
       <form
         onSubmit={(e) => {
           e.preventDefault()
@@ -148,7 +148,7 @@ function UserModal({
         </div>
 
         {error && (
-          <div className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+          <div className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-400/10 dark:text-red-300">{error}</div>
         )}
 
         <div className="mt-5 flex justify-end gap-2">
@@ -279,8 +279,8 @@ export default function Users() {
                   <span
                     className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${
                       u.is_active
-                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                        : 'border-slate-200 bg-slate-100 text-slate-600'
+                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300'
+                        : 'border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-400/20 dark:bg-slate-400/10 dark:text-slate-300'
                     }`}
                   >
                     {u.is_active ? 'Active' : 'Disabled'}

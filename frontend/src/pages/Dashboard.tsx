@@ -11,25 +11,7 @@ import {
   YAxis,
 } from 'recharts'
 import { api } from '../api/client'
-import { C as P, Card, ChartTooltip, StatTile, axisProps, fmtMonth } from '../components/charts'
-
-// Module → palette slot mapping for the dashboard charts
-const C = {
-  surface: P.surface,
-  grid: P.grid,
-  axis: P.axis,
-  muted: P.muted,
-  // Section identity: Quality = orange, Safety = blue
-  internal: P.orange,
-  external: P.aqua,
-  accidents: P.blue,
-  nearMisses: P.violet,
-  wasteNonHaz: P.green,
-  wasteHaz: P.violet,
-  warning: P.warning,
-  serious: P.serious,
-  critical: P.critical,
-}
+import { Card, ChartTooltip, StatTile, fmtMonth, useChartTheme } from '../components/charts'
 
 interface Summary {
   kpis: Record<
@@ -62,6 +44,7 @@ function TrendChart({
   data: Record<string, unknown>[]
   series: { key: string; name: string; color: string }[]
 }) {
+  const { C, axisProps } = useChartTheme()
   return (
     <ResponsiveContainer width="100%" height={220}>
       <LineChart data={data} margin={{ top: 4, right: 8, left: -18, bottom: 0 }}>
@@ -88,6 +71,7 @@ function TrendChart({
 }
 
 function SeverityBars({ data }: { data: Record<string, number> }) {
+  const { C } = useChartTheme()
   const rows = [
     { key: 'critical', label: 'Critical', color: C.critical },
     { key: 'major', label: 'Major', color: C.serious },
@@ -122,6 +106,17 @@ function SeverityBars({ data }: { data: Record<string, number> }) {
 }
 
 export default function Dashboard() {
+  const { C: P, axisProps } = useChartTheme()
+  // Section identity: Quality = orange, Safety = blue
+  const MC = {
+    internal: P.orange,
+    external: P.aqua,
+    accidents: P.blue,
+    nearMisses: P.yellow,
+    wasteNonHaz: P.green,
+    wasteHaz: P.violet,
+  }
+
   const { data } = useQuery<Summary>({
     queryKey: ['dashboard'],
     queryFn: () => api.get('/dashboard/summary'),
@@ -178,15 +173,15 @@ export default function Dashboard() {
           title="Quality events"
           subtitle="Non-conformities per month, last 12 months"
           legend={[
-            { label: 'Internal', color: C.internal },
-            { label: 'External', color: C.external },
+            { label: 'Internal', color: MC.internal },
+            { label: 'External', color: MC.external },
           ]}
         >
           <TrendChart
             data={data.monthly}
             series={[
-              { key: 'internal_nc', name: 'Internal', color: C.internal },
-              { key: 'external_nc', name: 'External', color: C.external },
+              { key: 'internal_nc', name: 'Internal', color: MC.internal },
+              { key: 'external_nc', name: 'External', color: MC.external },
             ]}
           />
         </Card>
@@ -195,15 +190,15 @@ export default function Dashboard() {
           title="Safety events"
           subtitle="Accidents and near misses per month, last 12 months"
           legend={[
-            { label: 'Accidents', color: C.accidents },
-            { label: 'Near misses', color: C.nearMisses },
+            { label: 'Accidents', color: MC.accidents },
+            { label: 'Near misses', color: MC.nearMisses },
           ]}
         >
           <TrendChart
             data={data.monthly}
             series={[
-              { key: 'accidents', name: 'Accidents', color: C.accidents },
-              { key: 'near_misses', name: 'Near misses', color: C.nearMisses },
+              { key: 'accidents', name: 'Accidents', color: MC.accidents },
+              { key: 'near_misses', name: 'Near misses', color: MC.nearMisses },
             ]}
           />
         </Card>
@@ -212,22 +207,22 @@ export default function Dashboard() {
           title="Waste production"
           subtitle="Kilograms per month"
           legend={[
-            { label: 'Non-hazardous', color: C.wasteNonHaz },
-            { label: 'Hazardous', color: C.wasteHaz },
+            { label: 'Non-hazardous', color: MC.wasteNonHaz },
+            { label: 'Hazardous', color: MC.wasteHaz },
           ]}
         >
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={data.waste_monthly} margin={{ top: 4, right: 8, left: -8, bottom: 0 }}>
-              <CartesianGrid stroke={C.grid} strokeWidth={1} vertical={false} />
+              <CartesianGrid stroke={P.grid} strokeWidth={1} vertical={false} />
               <XAxis dataKey="month" tickFormatter={(m) => fmtMonth(String(m))} {...axisProps} />
               <YAxis {...axisProps} axisLine={false} />
-              <Tooltip content={<ChartTooltip unit="kg" />} cursor={{ fill: 'rgba(11,11,11,0.03)' }} />
+              <Tooltip content={<ChartTooltip unit="kg" />} cursor={{ fill: 'rgba(128,128,128,0.06)' }} />
               <Bar
                 dataKey="non_hazardous_kg"
                 name="Non-hazardous"
                 stackId="w"
-                fill={C.wasteNonHaz}
-                stroke={C.surface}
+                fill={MC.wasteNonHaz}
+                stroke={P.surface}
                 strokeWidth={2}
                 barSize={20}
               />
@@ -235,8 +230,8 @@ export default function Dashboard() {
                 dataKey="hazardous_kg"
                 name="Hazardous"
                 stackId="w"
-                fill={C.wasteHaz}
-                stroke={C.surface}
+                fill={MC.wasteHaz}
+                stroke={P.surface}
                 strokeWidth={2}
                 barSize={20}
                 radius={[4, 4, 0, 0]}

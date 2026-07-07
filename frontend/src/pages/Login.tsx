@@ -62,7 +62,7 @@ export default function Login() {
           </label>
 
           {error && (
-            <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+            <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-400/10 dark:text-red-300">
               {error}
             </div>
           )}

@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-page: #f9f9f7;
   --color-surface: #fcfcfb;
@@ -21,6 +23,37 @@
 
   --color-accent: #2a78d6;
   --color-accent-dark: #1c5cab;
+}
+
+:root {
+  color-scheme: light;
+}
+
+/* Dark theme: same semantic tokens, dark values (palette steps chosen for the
+   dark surface). Components use tokens, so most of the app flips with this. */
+.dark {
+  color-scheme: dark;
+
+  --color-page: #0d0d0d;
+  --color-surface: #1a1a19;
+  --color-ink: #f4f4f0;
+  --color-ink-secondary: #c3c2b7;
+  --color-ink-muted: #8f8d86;
+  --color-hairline: #2c2c2a;
+  --color-baseline: #383835;
+
+  --color-quality: #d95926;
+  --color-quality-soft: #2e1d15;
+  --color-quality-text: #f5854e;
+  --color-security: #3987e5;
+  --color-security-soft: #17222f;
+  --color-security-text: #6da7ec;
+  --color-environment: #22a04a;
+  --color-environment-soft: #14231a;
+  --color-environment-text: #4cc06d;
+
+  --color-accent: #3987e5;
+  --color-accent-dark: #6da7ec;
 }
 
 body {

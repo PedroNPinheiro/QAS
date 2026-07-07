@@ -3,7 +3,9 @@ import {
   ExternalLink,
   LayoutDashboard,
   LogOut,
+  Moon,
   ScrollText,
+  Sun,
   Users,
 } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router-dom'
@@ -11,6 +13,7 @@ import { useAuth } from '../auth'
 import { EXTERNAL_LINKS, SECTIONS } from '../modules'
 import type { SectionKey } from '../modules'
 import { TEAM_LABELS, hasFullAccess, visibleModules } from '../permissions'
+import { useTheme } from '../theme'
 
 const ORDER: SectionKey[] = ['quality', 'security', 'environment']
 
@@ -45,6 +48,7 @@ function NavItem({
 
 export default function Layout() {
   const { user, logout } = useAuth()
+  const { theme, toggle } = useTheme()
   const full = hasFullAccess(user)
   const modules = visibleModules(user)
   const sections = ORDER.filter((key) => modules.some((m) => m.section === key))
@@ -124,13 +128,22 @@ export default function Layout() {
                 {user?.email}
               </div>
             </div>
-            <button
-              onClick={logout}
-              title="Sign out"
-              className="rounded-lg p-2 text-ink-muted transition-colors hover:bg-ink/5 hover:text-ink"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
+            <div className="flex shrink-0 items-center">
+              <button
+                onClick={toggle}
+                title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                className="rounded-lg p-2 text-ink-muted transition-colors hover:bg-ink/5 hover:text-ink"
+              >
+                {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </button>
+              <button
+                onClick={logout}
+                title="Sign out"
+                className="rounded-lg p-2 text-ink-muted transition-colors hover:bg-ink/5 hover:text-ink"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       </aside>

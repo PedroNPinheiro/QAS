@@ -66,7 +66,7 @@ export default function PendingFiles({
       </div>
 
       {rejected.length > 0 && (
-        <div className="mb-2 space-y-0.5 text-xs text-red-600">
+        <div className="mb-2 space-y-0.5 text-xs text-red-600 dark:text-red-400">
           {rejected.map((r) => (
             <div key={r}>{r}</div>
           ))}

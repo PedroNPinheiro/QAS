@@ -65,7 +65,7 @@ function PreviewModal({ attachment, onClose }: { attachment: Attachment; onClose
   }, [attachment.id, kind, onClose])
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-ink/70 p-4 sm:p-8" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex flex-col bg-black/70 p-4 sm:p-8" onClick={onClose}>
       <div
         className="mx-auto flex h-full w-full max-w-5xl flex-col overflow-hidden rounded-xl bg-surface shadow-2xl"
         onClick={(e) => e.stopPropagation()}
@@ -97,7 +97,7 @@ function PreviewModal({ attachment, onClose }: { attachment: Attachment; onClose
         </div>
         <div className="flex-1 overflow-auto bg-page">
           {error ? (
-            <div className="flex h-full items-center justify-center text-sm text-red-600">
+            <div className="flex h-full items-center justify-center text-sm text-red-600 dark:text-red-400">
               {error}
             </div>
           ) : kind === 'text' ? (
@@ -224,7 +224,7 @@ export default function Attachments({
       </div>
 
       {(error || rejectedMsg) && (
-        <div className="mb-2 text-xs text-red-600">{[rejectedMsg, error].filter(Boolean).join(' · ')}</div>
+        <div className="mb-2 text-xs text-red-600 dark:text-red-400">{[rejectedMsg, error].filter(Boolean).join(' · ')}</div>
       )}
 
       {attachments.length === 0 ? (
@@ -282,7 +282,7 @@ export default function Attachments({
                     onClick={() => {
                       if (confirm(`Delete "${a.filename}"?`)) remove.mutate(a.id)
                     }}
-                    className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-red-50 hover:text-red-600"
+                    className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-400/10 dark:hover:text-red-400"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>

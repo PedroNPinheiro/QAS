@@ -1,7 +1,24 @@
-// Shared chart building blocks — palette validated with the dataviz checker
-// against the light surface #fcfcfb.
+// Shared chart building blocks — light and dark palettes both validated with
+// the dataviz checker against their surfaces (#fcfcfb / #1a1a19).
+import { useTheme } from '../theme'
 
-export const C = {
+export interface ChartPalette {
+  surface: string
+  grid: string
+  axis: string
+  muted: string
+  blue: string
+  aqua: string
+  orange: string
+  violet: string
+  yellow: string
+  green: string
+  warning: string
+  serious: string
+  critical: string
+}
+
+const LIGHT: ChartPalette = {
   surface: '#fcfcfb',
   grid: '#e1e0d9',
   axis: '#c3c2b7',
@@ -10,11 +27,40 @@ export const C = {
   aqua: '#1baf7a',
   orange: '#eb6834',
   violet: '#4a3aa7',
+  yellow: '#eda100',
   green: '#008300',
-  // status palette (reserved for severity state)
+  // status palette (reserved for severity state; valid on both surfaces)
   warning: '#fab219',
   serious: '#ec835a',
   critical: '#d03b3b',
+}
+
+const DARK: ChartPalette = {
+  surface: '#1a1a19',
+  grid: '#2c2c2a',
+  axis: '#383835',
+  muted: '#8f8d86',
+  blue: '#3987e5',
+  aqua: '#199e70',
+  orange: '#d95926',
+  violet: '#9085e9',
+  yellow: '#c98500',
+  green: '#008300',
+  warning: '#fab219',
+  serious: '#ec835a',
+  critical: '#d03b3b',
+}
+
+/** Theme-aware chart palette + axis props. */
+export function useChartTheme() {
+  const { theme } = useTheme()
+  const C = theme === 'dark' ? DARK : LIGHT
+  const axisProps = {
+    tick: { fill: C.muted, fontSize: 11 },
+    axisLine: { stroke: C.axis },
+    tickLine: false as const,
+  }
+  return { C, axisProps }
 }
 
 export const fmtMonth = (m: string, withYear = false) =>
@@ -22,12 +68,6 @@ export const fmtMonth = (m: string, withYear = false) =>
     month: 'short',
     ...(withYear ? { year: '2-digit' } : {}),
   })
-
-export const axisProps = {
-  tick: { fill: C.muted, fontSize: 11 },
-  axisLine: { stroke: C.axis },
-  tickLine: false as const,
-}
 
 export function StatTile({
   label,
@@ -41,7 +81,11 @@ export function StatTile({
   subTone?: 'muted' | 'bad' | 'good'
 }) {
   const tone =
-    subTone === 'bad' ? 'text-red-600' : subTone === 'good' ? 'text-emerald-700' : 'text-ink-muted'
+    subTone === 'bad'
+      ? 'text-red-600 dark:text-red-400'
+      : subTone === 'good'
+        ? 'text-emerald-700 dark:text-emerald-400'
+        : 'text-ink-muted'
   return (
     <div className="rounded-xl border border-hairline bg-surface p-4">
       <div className="text-xs font-medium text-ink-secondary">{label}</div>
