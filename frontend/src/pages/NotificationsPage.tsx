@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { BellRing, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { api } from '../api/client'
-import { moduleByEntityType } from '../modules'
 
 interface Recipient {
   id: number
@@ -10,8 +9,24 @@ interface Recipient {
   email: string
 }
 
-// Modules with a fixed "notify on create" list (backend notify="fixed")
-const FIXED_MODULES = ['test_report']
+// Sections shown on this page: the global list plus per-module lists
+const SECTIONS_CFG: { key: string; title: string; desc: string }[] = [
+  {
+    key: 'all',
+    title: 'All modules',
+    desc: 'These addresses (e.g. a department distribution list) receive an email for every new record, in any module.',
+  },
+  {
+    key: 'test_report',
+    title: 'Quality Tests & Product Derogations',
+    desc: 'Additionally notified for every new quality test.',
+  },
+  {
+    key: 'external_nc',
+    title: 'External Non-Conformities',
+    desc: 'Additionally notified for every new external NC.',
+  },
+]
 
 export default function NotificationsPage() {
   const queryClient = useQueryClient()
@@ -60,19 +75,16 @@ export default function NotificationsPage() {
       )}
 
       <div className="space-y-5">
-        {FIXED_MODULES.map((entityType) => {
-          const module = moduleByEntityType(entityType)
+        {SECTIONS_CFG.map(({ key: entityType, title, desc }) => {
           const list = recipients.filter((r) => r.entity_type === entityType)
           const draft = drafts[entityType] ?? ''
           return (
             <div key={entityType} className="rounded-xl border border-hairline bg-surface p-5">
               <h2 className="mb-1 flex items-center gap-2 text-sm font-semibold">
                 <BellRing className="h-4 w-4 text-ink-muted" />
-                {module?.title ?? entityType}
+                {title}
               </h2>
-              <p className="mb-4 text-xs text-ink-muted">
-                These addresses receive an email for every new {module?.singular.toLowerCase()}.
-              </p>
+              <p className="mb-4 text-xs text-ink-muted">{desc}</p>
 
               {list.length === 0 ? (
                 <p className="mb-3 text-sm text-ink-muted">

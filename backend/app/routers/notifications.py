@@ -26,7 +26,7 @@ def list_recipients(db: Session = Depends(get_db)):
 
 @router.post("", response_model=NotificationRecipientRead, status_code=201)
 def add_recipient(payload: NotificationRecipientCreate, db: Session = Depends(get_db)):
-    if payload.entity_type not in MODULE_TEAMS:
+    if payload.entity_type != "all" and payload.entity_type not in MODULE_TEAMS:
         raise HTTPException(status_code=400, detail=f"Unknown module '{payload.entity_type}'")
     email = payload.email.lower()
     exists = db.scalar(

@@ -248,18 +248,19 @@ def create_crud_router(
             user=user,
         )
 
-        # Email notifications (sent after the response, failures only logged)
-        emails: list[str] = []
-        if notify == "fixed":
-            emails = list(
-                db.scalars(
-                    select(NotificationRecipient.email).where(
-                        NotificationRecipient.entity_type == entity_type
-                    )
+        # Email notifications (sent after the response, failures only logged):
+        # fixed recipients for this module + the global 'all' list + any
+        # addresses the creator picked on the form.
+        emails = list(
+            db.scalars(
+                select(NotificationRecipient.email).where(
+                    NotificationRecipient.entity_type.in_([entity_type, "all"])
                 )
             )
-        elif notify == "choose" and notify_emails:
-            emails = list(dict.fromkeys(e.lower() for e in notify_emails))
+        )
+        if notify == "choose" and notify_emails:
+            emails += [e for e in notify_emails]
+        emails = list(dict.fromkeys(e.lower() for e in emails))
         if emails:
             from .mailer import record_email, send_email  # lazy: avoids import cycle
 
