@@ -286,7 +286,9 @@ def create_crud_router(
         notify_emails = data.pop("notify_emails", [])
         obj = model(**data)
         # Reference month follows the record's own date, not today
-        obj.reference = next_reference(db, ref_prefix, getattr(obj, date_field, None), ref_style)
+        obj.reference = next_reference(
+            db, ref_prefix, getattr(obj, date_field, None), ref_style, model
+        )
         obj.created_by_id = user.id
         db.add(obj)
         db.flush()

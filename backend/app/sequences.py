@@ -1,10 +1,31 @@
+import re
 from datetime import date, datetime
 
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
-from .models import RefSequence
+from .models import AuditLog, RefSequence
+
+
+def _lowest_freed(db: Session, pattern: str, num_of, model) -> str | None:
+    """The lowest reference matching `pattern` that was deleted in the app
+    (per the audit trail) and is currently vacant. Historical gaps from the
+    Excel import are NOT reused — only numbers freed by a deletion."""
+    deleted = set(
+        db.scalars(
+            select(AuditLog.reference).where(
+                AuditLog.action == "delete", AuditLog.reference.like(pattern)
+            )
+        )
+    )
+    if not deleted:
+        return None
+    existing = set(
+        db.scalars(select(model.reference).where(model.reference.like(pattern)))
+    )
+    freed = [r for r in deleted - existing if num_of(r) is not None]
+    return min(freed, key=num_of) if freed else None
 
 
 def next_reference(
@@ -12,18 +33,17 @@ def next_reference(
     prefix: str,
     ref_date: date | datetime | None = None,
     style: str = "monthly",
+    model=None,
 ) -> str:
     """Return the next reference in the spreadsheet-compatible format.
 
     - "monthly": PREFIX + MMYY + .NN, e.g. NCI0626.01 (counter per month)
     - "yearly":  N_YYYY, e.g. 41_2026 (counter per year — test reports)
 
-    The month/year come from the record's own date (`ref_date`) — a record
-    registered in July for something that happened in June gets a June
-    reference. Falls back to today when no date is given.
-
-    Counters are locked FOR UPDATE, so concurrent creates never produce
-    duplicates. Yearly counters are stored with month=0.
+    The month/year come from the record's own date (`ref_date`). Numbers
+    freed by deleting a record are reused (lowest first) so the register
+    keeps no accidental gaps; the counter row is locked FOR UPDATE, so
+    concurrent creates never produce duplicates.
     """
     if isinstance(ref_date, datetime):
         ref_date = ref_date.date()
@@ -34,6 +54,7 @@ def next_reference(
         .values(prefix=prefix, year=d.year, month=month, last_number=0)
         .on_conflict_do_nothing(index_elements=["prefix", "year", "month"])
     )
+    # Locked row doubles as the mutex for the freed-number lookup below
     seq = db.execute(
         select(RefSequence)
         .where(
@@ -43,6 +64,18 @@ def next_reference(
         )
         .with_for_update()
     ).scalar_one()
+
+    if model is not None:
+        if style == "yearly":
+            pattern = f"%\\_{d.year}"
+            num_of = lambda r: int(m.group(1)) if (m := re.match(r"^(\d+)_\d{4}$", r)) else None
+        else:
+            pattern = f"{prefix}{d.month:02d}{d.year % 100:02d}.%"
+            num_of = lambda r: int(m.group(1)) if (m := re.search(r"\.(\d+)$", r)) else None
+        freed = _lowest_freed(db, pattern, num_of, model)
+        if freed:
+            return freed
+
     seq.last_number += 1
     if style == "yearly":
         return f"{seq.last_number}_{d.year}"
