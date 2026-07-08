@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from .. import models
 from ..audit import log_audit
 from ..auth import get_current_user
-from ..permissions import require_view
+from ..permissions import require_attach, require_view
 from ..config import settings
 from ..database import get_db
 from ..schemas import AttachmentRead
@@ -93,7 +93,7 @@ def upload_attachment(
     db: Session = Depends(get_db),
     user: models.User = Depends(get_current_user),
 ):
-    require_view(user, entity_type)
+    require_attach(user, entity_type)
     entity = _get_entity_or_404(db, entity_type, entity_id)
     suffix = Path(file.filename or "file").suffix[:20].lower()
     if suffix not in ALLOWED_EXTENSIONS:
@@ -145,7 +145,7 @@ def delete_attachment(
     attachment = db.get(models.Attachment, attachment_id)
     if attachment is None:
         raise HTTPException(status_code=404, detail="Attachment not found")
-    require_view(user, attachment.entity_type)
+    require_attach(user, attachment.entity_type)
     entity = db.get(ENTITY_MODELS.get(attachment.entity_type), attachment.entity_id)
     (Path(settings.upload_dir) / attachment.stored_name).unlink(missing_ok=True)
     log_audit(

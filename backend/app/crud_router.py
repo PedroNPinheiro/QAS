@@ -338,11 +338,11 @@ def create_crud_router(
         db: Session = Depends(get_db),
         user: User = Depends(get_current_user),
     ):
+        require_view(user, entity_type)
+        allowed = editable_fields(user, entity_type)
         obj = db.get(model, record_id)
         if obj is None:
             raise HTTPException(status_code=404, detail="Record not found")
-        require_view(user, entity_type)
-        allowed = editable_fields(user, entity_type)
         new_values = payload.model_dump(exclude_unset=True)
         if allowed is not None:
             new_values = {k: v for k, v in new_values.items() if k in allowed}

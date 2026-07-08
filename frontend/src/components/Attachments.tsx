@@ -128,9 +128,11 @@ function PreviewModal({ attachment, onClose }: { attachment: Attachment; onClose
 export default function Attachments({
   entityType,
   entityId,
+  readOnly = false,
 }: {
   entityType: string
   entityId: number
+  readOnly?: boolean
 }) {
   const queryClient = useQueryClient()
   const fileInput = useRef<HTMLInputElement>(null)
@@ -184,11 +186,13 @@ export default function Attachments({
         dragging ? 'border-accent bg-accent/5' : 'border-hairline'
       }`}
       onDragOver={(e) => {
+        if (readOnly) return
         e.preventDefault()
         setDragging(true)
       }}
       onDragLeave={() => setDragging(false)}
       onDrop={(e) => {
+        if (readOnly) return
         e.preventDefault()
         setDragging(false)
         handleFiles(e.dataTransfer.files)
@@ -202,6 +206,7 @@ export default function Attachments({
             <span className="text-xs font-normal text-ink-muted">({attachments.length})</span>
           )}
         </h3>
+        {!readOnly && (
         <button
           type="button"
           onClick={() => fileInput.current?.click()}
@@ -211,6 +216,7 @@ export default function Attachments({
           <Upload className="h-3.5 w-3.5" />
           {upload.isPending ? 'Uploading…' : 'Upload files'}
         </button>
+        )}
         <input
           ref={fileInput}
           type="file"
@@ -229,7 +235,7 @@ export default function Attachments({
 
       {attachments.length === 0 ? (
         <p className="rounded-lg border border-dashed border-hairline px-4 py-6 text-center text-sm text-ink-muted">
-          No files attached. Drag & drop files here, or use “Upload files”.
+          {readOnly ? 'No files attached.' : 'No files attached. Drag & drop files here, or use “Upload files”.'}
         </p>
       ) : (
         <ul className="divide-y divide-hairline">
@@ -276,16 +282,18 @@ export default function Attachments({
                   >
                     <Download className="h-4 w-4" />
                   </button>
-                  <button
-                    type="button"
-                    title="Delete"
-                    onClick={() => {
-                      if (confirm(`Delete "${a.filename}"?`)) remove.mutate(a.id)
-                    }}
-                    className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-400/10 dark:hover:text-red-400"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  {!readOnly && (
+                    <button
+                      type="button"
+                      title="Delete"
+                      onClick={() => {
+                        if (confirm(`Delete "${a.filename}"?`)) remove.mutate(a.id)
+                      }}
+                      className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-400/10 dark:hover:text-red-400"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
               </li>
             )

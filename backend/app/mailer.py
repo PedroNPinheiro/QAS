@@ -64,6 +64,9 @@ def welcome_email(*, full_name: str, team: str, has_password: bool) -> tuple[str
         "quality": "You have access to all modules: Quality, Safety and Environment.",
         "purchasing": "You have access to External Non-Conformities, where you fill in the supplier follow-up section.",
         "warehouse": "You have access to External Non-Conformities, where you fill in the closure section.",
+        "viewer": "You have read-only access to all modules, the dashboard and analytics.",
+        "internal_nc_viewer": "You have read-only access to Internal Non-Conformities.",
+        "waste_viewer": "You have read-only access to Waste Production Records.",
     }
     if has_password:
         how = "Sign in with your email address and the password you received from the Quality team — or simply use <strong>Sign in with Microsoft</strong> with your usual 365 account."

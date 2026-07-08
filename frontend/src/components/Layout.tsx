@@ -13,7 +13,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth'
 import { EXTERNAL_LINKS, SECTIONS } from '../modules'
 import type { SectionKey } from '../modules'
-import { TEAM_LABELS, hasFullAccess, visibleModules } from '../permissions'
+import { TEAM_LABELS, canSeeDashboards, hasFullAccess, visibleModules } from '../permissions'
 import { useTheme } from '../theme'
 
 const ORDER: SectionKey[] = ['quality', 'security', 'environment']
@@ -51,6 +51,7 @@ export default function Layout() {
   const { user, logout } = useAuth()
   const { theme, toggle } = useTheme()
   const full = hasFullAccess(user)
+  const dashboards = canSeeDashboards(user)
   const modules = visibleModules(user)
   const sections = ORDER.filter((key) => modules.some((m) => m.section === key))
 
@@ -68,7 +69,7 @@ export default function Layout() {
         </div>
 
         <nav className="flex-1 space-y-5 overflow-y-auto px-3 pb-4">
-          {full && (
+          {dashboards && (
             <div className="space-y-0.5">
               <NavItem to="/" icon={LayoutDashboard} label="Dashboard" end />
               <NavItem to="/analytics" icon={BarChart3} label="Analytics" />

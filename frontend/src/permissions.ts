@@ -5,13 +5,15 @@ import { MODULES } from './modules'
 import type { ModuleDef } from './modules'
 
 const MODULE_TEAMS: Record<string, string[]> = {
-  internal_nc: ['quality'],
-  external_nc: ['quality', 'purchasing', 'warehouse'],
-  test_report: ['quality'],
-  accident: ['quality'],
-  near_miss: ['quality'],
-  waste: ['quality'],
+  internal_nc: ['quality', 'viewer', 'internal_nc_viewer'],
+  external_nc: ['quality', 'purchasing', 'warehouse', 'viewer'],
+  test_report: ['quality', 'viewer'],
+  accident: ['quality', 'viewer'],
+  near_miss: ['quality', 'viewer'],
+  waste: ['quality', 'viewer', 'waste_viewer'],
 }
+
+const READ_ONLY_TEAMS = ['viewer', 'internal_nc_viewer', 'waste_viewer']
 
 const TEAM_EDITABLE_FIELDS: Record<string, Record<string, string[]>> = {
   external_nc: {
@@ -39,12 +41,24 @@ export function editableFields(user: User | null, module: ModuleDef): string[] |
 export const visibleModules = (user: User | null) =>
   MODULES.filter((m) => canViewModule(user, m))
 
-/** Landing page: restricted teams go straight to External NCs. */
+/** Dashboard & analytics: full access or the all-modules viewer. */
+export const canSeeDashboards = (user: User | null) =>
+  hasFullAccess(user) || user?.team === 'viewer'
+
+/** Uploading/removing files counts as editing — read-only teams may not. */
+export const canModifyFiles = (user: User | null, module: ModuleDef) =>
+  canViewModule(user, module) &&
+  (user?.role === 'admin' || !READ_ONLY_TEAMS.includes(user?.team ?? ''))
+
+/** Landing page: dashboard when allowed, else the first visible module. */
 export const homePath = (user: User | null) =>
-  hasFullAccess(user) ? '/' : '/quality/external-nc'
+  canSeeDashboards(user) ? '/' : visibleModules(user)[0]?.path ?? '/'
 
 export const TEAM_LABELS: Record<string, string> = {
   quality: 'Quality',
   purchasing: 'Purchasing',
   warehouse: 'Warehouse',
+  viewer: 'Viewer',
+  internal_nc_viewer: 'Internal NCs viewer',
+  waste_viewer: 'Waste viewer',
 }

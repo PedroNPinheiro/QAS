@@ -10,7 +10,7 @@ NCSeverity = Literal["minor", "major", "critical"]
 AccidentSeverity = Literal["first_aid", "minor", "serious", "fatal"]
 RiskLevel = Literal["low", "medium", "high"]
 Role = Literal["admin", "user"]
-Team = Literal["quality", "purchasing", "warehouse"]
+Team = Literal["quality", "purchasing", "warehouse", "viewer", "internal_nc_viewer", "waste_viewer"]
 
 
 # ---------------------------------------------------------------- auth / users

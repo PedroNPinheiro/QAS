@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { useAuth } from '../auth'
-import { canCreate, canViewModule, editableFields, homePath } from '../permissions'
+import { canCreate, canModifyFiles, canViewModule, editableFields, homePath } from '../permissions'
 import Attachments from '../components/Attachments'
 import History from '../components/History'
 import PendingFiles from '../components/PendingFiles'
@@ -506,7 +506,11 @@ export default function RecordPage({ module }: { module: ModuleDef }) {
         )}
         {!isNew && id && (
           <>
-            <Attachments entityType={module.entityType} entityId={Number(id)} />
+            <Attachments
+              entityType={module.entityType}
+              entityId={Number(id)}
+              readOnly={!canModifyFiles(user, module)}
+            />
             <History entityType={module.entityType} entityId={Number(id)} />
           </>
         )}

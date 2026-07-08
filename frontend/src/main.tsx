@@ -15,7 +15,7 @@ import Login from './pages/Login'
 import NotificationsPage from './pages/NotificationsPage'
 import RecordPage from './pages/RecordPage'
 import Users from './pages/Users'
-import { hasFullAccess, homePath } from './permissions'
+import { canSeeDashboards, homePath } from './permissions'
 import { ThemeProvider } from './theme'
 
 const queryClient = new QueryClient({
@@ -30,7 +30,7 @@ function AdminOnly({ children }: { children: React.ReactNode }) {
 
 function FullAccessOnly({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
-  if (!hasFullAccess(user)) return <Navigate to={homePath(user)} replace />
+  if (!canSeeDashboards(user)) return <Navigate to={homePath(user)} replace />
   return children
 }
 

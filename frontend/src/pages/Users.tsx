@@ -17,7 +17,7 @@ interface Draft {
   full_name: string
   password: string
   role: 'admin' | 'user'
-  team: 'quality' | 'purchasing' | 'warehouse'
+  team: User['team']
   is_active: boolean
 }
 
@@ -34,6 +34,9 @@ const TEAM_OPTIONS = [
   { value: 'quality', label: 'Quality (full access)' },
   { value: 'purchasing', label: 'Purchasing (external NCs only)' },
   { value: 'warehouse', label: 'Warehouse (external NCs only)' },
+  { value: 'viewer', label: 'Viewer (everything, read-only)' },
+  { value: 'internal_nc_viewer', label: 'Internal NCs viewer (read-only)' },
+  { value: 'waste_viewer', label: 'Waste viewer (read-only)' },
 ] as const
 
 const inputCls =
