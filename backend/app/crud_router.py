@@ -1,4 +1,5 @@
 import io
+import re
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Type
@@ -147,6 +148,15 @@ def create_crud_router(
 
     router = APIRouter()
     sortable = {c.name for c in model.__table__.columns}
+
+    def ref_matches_period(reference: str, d: date) -> bool:
+        """Does this reference belong to the date's month/year sequence?
+        Unrecognised formats are left alone (treated as matching)."""
+        if ref_style == "yearly":
+            m = re.match(r"^(\d+)_(\d{4})$", reference)
+            return not m or int(m.group(2)) == d.year
+        m = re.match(rf"^{ref_prefix}(\d{{2}})(\d{{2}})\.\d+$", reference)
+        return not m or (int(m.group(1)) == d.month and int(m.group(2)) == d.year % 100)
 
     date_col = getattr(model, date_field)
 
@@ -351,6 +361,16 @@ def create_crud_router(
         changes = diff_changes(obj, new_values)
         for key, value in new_values.items():
             setattr(obj, key, value)
+        # A date edit that moves the record into another month/year re-homes
+        # the reference into that period's sequence; the old number is freed.
+        if date_field in changes:
+            d = getattr(obj, date_field)
+            if isinstance(d, datetime):
+                d = d.date()
+            if d is not None and not ref_matches_period(obj.reference, d):
+                new_ref = next_reference(db, ref_prefix, d, ref_style, model)
+                changes["reference"] = {"from": obj.reference, "to": new_ref}
+                obj.reference = new_ref
         if changes:
             log_audit(
                 db,

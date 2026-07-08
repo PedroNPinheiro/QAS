@@ -9,13 +9,22 @@ from .models import AuditLog, RefSequence
 
 
 def _lowest_freed(db: Session, pattern: str, num_of, model) -> str | None:
-    """The lowest reference matching `pattern` that was deleted in the app
-    (per the audit trail) and is currently vacant. Historical gaps from the
-    Excel import are NOT reused — only numbers freed by a deletion."""
+    """The lowest reference matching `pattern` that was freed in the app —
+    by deleting a record or by a date edit that re-homed its reference —
+    and is currently vacant. Historical gaps from the Excel import are
+    NOT reused."""
     deleted = set(
         db.scalars(
             select(AuditLog.reference).where(
                 AuditLog.action == "delete", AuditLog.reference.like(pattern)
+            )
+        )
+    )
+    renumber_from = AuditLog.changes["reference"]["from"].astext
+    deleted |= set(
+        db.scalars(
+            select(renumber_from).where(
+                AuditLog.action == "update", renumber_from.like(pattern)
             )
         )
     )
