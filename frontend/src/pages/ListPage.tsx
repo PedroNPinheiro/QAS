@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight, Download, Plus, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
@@ -7,8 +7,8 @@ import { useAuth } from '../auth'
 import { SeverityBadge, StatusBadge } from '../components/Badge'
 import { fmtDate, fmtDateTime } from '../format'
 import { SECTIONS } from '../modules'
-import type { ColumnDef, ModuleDef } from '../modules'
-import { canCreate, canViewModule, homePath } from '../permissions'
+import type { ColumnDef, ModuleDef, Option } from '../modules'
+import { canCreate, canViewModule, editableFields, homePath } from '../permissions'
 
 type Rec = Record<string, unknown> & { id: number; reference: string }
 
@@ -65,8 +65,115 @@ function colWidth(c: ColumnDef): string | undefined {
   return COL_WIDTH[c.kind ?? 'text']
 }
 
+// A status/severity badge that turns into a dropdown when clicked, saving on
+// change — for quick edits from the list without opening each record.
+function InlineSelect({
+  kind,
+  value,
+  options,
+  onSave,
+}: {
+  kind: 'status' | 'severity'
+  value: string
+  options: Option[]
+  onSave: (v: string) => void
+}) {
+  const [editing, setEditing] = useState(false)
+  if (!editing) {
+    return (
+      <button
+        type="button"
+        title="Click to change"
+        onClick={(e) => {
+          e.stopPropagation()
+          setEditing(true)
+        }}
+        className="rounded-full outline-none ring-offset-1 ring-offset-surface hover:ring-2 hover:ring-accent/40 focus:ring-2 focus:ring-accent/40"
+      >
+        {kind === 'status' ? <StatusBadge value={value} /> : <SeverityBadge value={value} />}
+      </button>
+    )
+  }
+  return (
+    <select
+      autoFocus
+      defaultValue={value}
+      onClick={(e) => e.stopPropagation()}
+      onBlur={() => setEditing(false)}
+      onChange={(e) => {
+        setEditing(false)
+        if (e.target.value !== value) onSave(e.target.value)
+      }}
+      className="w-full rounded-lg border border-hairline bg-surface px-1.5 py-1 text-xs outline-none focus:border-accent"
+    >
+      {options.map((o) => (
+        <option key={o.value} value={o.value}>
+          {o.label}
+        </option>
+      ))}
+    </select>
+  )
+}
+
+// A number cell (cost) editable in place, saving on Enter/blur.
+function InlineNumber({
+  value,
+  onSave,
+}: {
+  value: unknown
+  onSave: (v: number | null) => void
+}) {
+  const [editing, setEditing] = useState(false)
+  const current = value === null || value === undefined || value === '' ? null : Number(value)
+  if (!editing) {
+    return (
+      <button
+        type="button"
+        title="Click to edit"
+        onClick={(e) => {
+          e.stopPropagation()
+          setEditing(true)
+        }}
+        className="block w-full rounded px-1 text-left tabular-nums outline-none hover:bg-ink/5 focus:bg-ink/5"
+      >
+        {current === null ? (
+          <span className="text-ink-muted">—</span>
+        ) : (
+          current.toLocaleString()
+        )}
+      </button>
+    )
+  }
+  const commit = (raw: string) => {
+    setEditing(false)
+    const next = raw.trim() === '' ? null : Number(raw)
+    if (next !== null && Number.isNaN(next)) return
+    if (next !== current) onSave(next)
+  }
+  return (
+    <input
+      type="number"
+      step="any"
+      autoFocus
+      defaultValue={current ?? ''}
+      onClick={(e) => e.stopPropagation()}
+      onBlur={(e) => commit(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.currentTarget.blur()
+        if (e.key === 'Escape') setEditing(false)
+      }}
+      className="w-full rounded-lg border border-hairline bg-surface px-1.5 py-1 text-xs tabular-nums outline-none focus:border-accent"
+    />
+  )
+}
+
+/** Which columns can be edited inline: status, severity/risk, and cost. */
+const isInlineField = (c: ColumnDef) =>
+  c.kind === 'status' || c.kind === 'severity' || c.key === 'cost'
+
 export default function ListPage({ module }: { module: ModuleDef }) {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { user } = useAuth()
   const [search, setSearch] = useState('')
   const [q, setQ] = useState('')
@@ -117,10 +224,32 @@ export default function ListPage({ module }: { module: ModuleDef }) {
     staleTime: 5 * 60_000,
   })
 
-  const statusOptions =
-    module.form
-      .flatMap((s) => s.fields)
-      .find((f) => f.name === 'status')?.options ?? []
+  const allFields = module.form.flatMap((s) => s.fields)
+  const statusOptions = allFields.find((f) => f.name === 'status')?.options ?? []
+  const fieldOptions = (name: string) => allFields.find((f) => f.name === name)?.options ?? []
+
+  // Which fields this user may edit inline (null = all, for full-access teams)
+  const allowed = editableFields(user, module)
+  const canEditInline = (c: ColumnDef) =>
+    isInlineField(c) && (allowed === null || allowed.includes(c.key))
+
+  // Inline single-field update with optimistic refresh of the visible list
+  const patch = useMutation({
+    mutationFn: ({ id, field, value }: { id: number; field: string; value: unknown }) =>
+      api.put(`${module.api}/${id}`, { [field]: value }),
+    onMutate: async ({ id, field, value }) => {
+      await queryClient.cancelQueries({ queryKey: ['list', module.api] })
+      queryClient.setQueriesData<Page>({ queryKey: ['list', module.api] }, (old) =>
+        old
+          ? { ...old, items: old.items.map((it) => (it.id === id ? { ...it, [field]: value } : it)) }
+          : old,
+      )
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['list', module.api] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+    },
+  })
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.page_size)) : 1
   const section = SECTIONS[module.section]
@@ -298,6 +427,20 @@ export default function ListPage({ module }: { module: ModuleDef }) {
                         <span className="block truncate font-medium text-accent-dark">
                           {record.reference}
                         </span>
+                      ) : canEditInline(c) ? (
+                        c.key === 'cost' ? (
+                          <InlineNumber
+                            value={record[c.key]}
+                            onSave={(value) => patch.mutate({ id: record.id, field: c.key, value })}
+                          />
+                        ) : (
+                          <InlineSelect
+                            kind={c.kind as 'status' | 'severity'}
+                            value={String(record[c.key] ?? '')}
+                            options={fieldOptions(c.key)}
+                            onSave={(value) => patch.mutate({ id: record.id, field: c.key, value })}
+                          />
+                        )
                       ) : (
                         <Cell column={c} record={record} />
                       )}
