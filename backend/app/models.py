@@ -182,6 +182,7 @@ class WasteRecord(RecordMixin, CreatedByMixin, Base):
     quantity_kg: Mapped[float] = mapped_column(Numeric(12, 1))
     hazardous: Mapped[bool] = mapped_column(Boolean, default=False)
     egar: Mapped[str | None] = mapped_column(String(100))
+    transport_guide: Mapped[str | None] = mapped_column(String(100))  # guia de transporte
     operator: Mapped[str | None] = mapped_column(String(255))  # gestor de resíduo
     invoiced_value: Mapped[float | None] = mapped_column(Numeric(12, 2))
     notes: Mapped[str | None] = mapped_column(Text)

@@ -238,6 +238,7 @@ class WasteBase(BaseModel):
     quantity_kg: Decimal = Field(gt=0)
     hazardous: bool = False
     egar: str | None = None
+    transport_guide: str | None = None
     operator: str | None = None
     invoiced_value: Decimal | None = None
     notes: str | None = None

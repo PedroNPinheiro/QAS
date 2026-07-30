@@ -639,6 +639,7 @@ export const MODULES: ModuleDef[] = [
         title: 'Transport & value',
         fields: [
           { name: 'egar', label: 'e-GAR', type: 'text' },
+          { name: 'transport_guide', label: 'Transport Guide', type: 'text' },
           { name: 'operator', label: 'Waste operator', type: 'text', suggestions: WASTE_OPERATORS },
           {
             name: 'invoiced_value',
