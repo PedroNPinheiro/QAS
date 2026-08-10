@@ -294,7 +294,7 @@ export default function ListPage({ module }: { module: ModuleDef }) {
             <Download className="h-4 w-4" />
             Export Excel
           </button>
-          {canCreate(user) && (
+          {canCreate(user, module) && (
             <button
               onClick={() => navigate(`${module.path}/new`)}
               className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-dark"

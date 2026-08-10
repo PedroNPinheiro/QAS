@@ -66,6 +66,7 @@ def welcome_email(*, full_name: str, team: str, has_password: bool) -> tuple[str
         "warehouse": "You have access to External Non-Conformities, where you fill in the closure section.",
         "viewer": "You have read-only access to all modules, the dashboard and analytics.",
         "internal_nc_viewer": "You have read-only access to Internal Non-Conformities.",
+        "internal_nc_editor": "You can view and edit Internal Non-Conformities.",
         "waste_viewer": "You have read-only access to Waste Production Records.",
     }
     if has_password:

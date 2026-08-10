@@ -11,7 +11,9 @@
       "Bash(curl -s -o /dev/null -w \"/analytics: %{http_code}\\\\n\" https://qas.cascointernal.com/analytics)",
       "Bash(ssh -i ~/.ssh/qas_deploy -o IdentitiesOnly=yes root@46.225.95.197 'git pull --ff-only 2>&1 | tail -3 && chmod +x deploy/update.sh && git log --oneline -1 && echo PULL-FLOW-OK')",
       "Bash(printf 'control range doc\\\\n')",
-      "Bash(node cr_check.mjs)"
+      "Bash(node cr_check.mjs)",
+      "Bash(ps -eo pid,cmd)",
+      "Bash(npx tsc *)"
     ]
   }
 }

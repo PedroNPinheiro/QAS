@@ -36,6 +36,7 @@ const TEAM_OPTIONS = [
   { value: 'warehouse', label: 'Warehouse (external NCs only)' },
   { value: 'viewer', label: 'Viewer (everything, read-only)' },
   { value: 'internal_nc_viewer', label: 'Internal NCs viewer (read-only)' },
+  { value: 'internal_nc_editor', label: 'Internal NCs editor (view + edit)' },
   { value: 'waste_viewer', label: 'Waste viewer (read-only)' },
 ] as const
 

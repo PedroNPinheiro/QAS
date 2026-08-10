@@ -8,7 +8,14 @@ export interface User {
   email: string
   full_name: string
   role: 'admin' | 'user'
-  team: 'quality' | 'purchasing' | 'warehouse' | 'viewer' | 'internal_nc_viewer' | 'waste_viewer'
+  team:
+    | 'quality'
+    | 'purchasing'
+    | 'warehouse'
+    | 'viewer'
+    | 'internal_nc_viewer'
+    | 'internal_nc_editor'
+    | 'waste_viewer'
 }
 
 interface AuthState {

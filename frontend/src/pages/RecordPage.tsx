@@ -291,7 +291,7 @@ export default function RecordPage({ module }: { module: ModuleDef }) {
   const fieldEditable = (name: string) => allowed === null || allowed.includes(name)
 
   if (!canViewModule(user, module)) return <Navigate to={homePath(user)} replace />
-  if (isNew && !canCreate(user)) return <Navigate to={module.path} replace />
+  if (isNew && !canCreate(user, module)) return <Navigate to={module.path} replace />
 
   return (
     <form

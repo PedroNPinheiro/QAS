@@ -5,7 +5,7 @@ import { MODULES } from './modules'
 import type { ModuleDef } from './modules'
 
 const MODULE_TEAMS: Record<string, string[]> = {
-  internal_nc: ['quality', 'viewer', 'internal_nc_viewer'],
+  internal_nc: ['quality', 'viewer', 'internal_nc_viewer', 'internal_nc_editor'],
   external_nc: ['quality', 'purchasing', 'warehouse', 'viewer'],
   test_report: ['quality', 'viewer'],
   accident: ['quality', 'viewer'],
@@ -14,6 +14,11 @@ const MODULE_TEAMS: Record<string, string[]> = {
 }
 
 const READ_ONLY_TEAMS = ['viewer', 'internal_nc_viewer', 'waste_viewer']
+
+// Teams with full edit rights scoped to specific modules
+const MODULE_EDITORS: Record<string, string[]> = {
+  internal_nc_editor: ['internal_nc'],
+}
 
 const TEAM_EDITABLE_FIELDS: Record<string, Record<string, string[]>> = {
   external_nc: {
@@ -25,15 +30,19 @@ const TEAM_EDITABLE_FIELDS: Record<string, Record<string, string[]>> = {
 export const hasFullAccess = (user: User | null) =>
   user !== null && (user.role === 'admin' || user.team === 'quality')
 
+const isModuleEditor = (user: User | null, module: ModuleDef) =>
+  user !== null && (MODULE_EDITORS[user.team]?.includes(module.entityType) ?? false)
+
 export const canViewModule = (user: User | null, module: ModuleDef) =>
   user !== null &&
   (user.role === 'admin' || MODULE_TEAMS[module.entityType]?.includes(user.team))
 
-export const canCreate = (user: User | null) => hasFullAccess(user)
+export const canCreate = (user: User | null, module: ModuleDef) =>
+  hasFullAccess(user) || isModuleEditor(user, module)
 
 /** Fields the user may edit on this module — null means all fields. */
 export function editableFields(user: User | null, module: ModuleDef): string[] | null {
-  if (hasFullAccess(user)) return null
+  if (hasFullAccess(user) || isModuleEditor(user, module)) return null
   if (!user) return []
   return TEAM_EDITABLE_FIELDS[module.entityType]?.[user.team] ?? []
 }
@@ -60,5 +69,6 @@ export const TEAM_LABELS: Record<string, string> = {
   warehouse: 'Warehouse',
   viewer: 'Viewer',
   internal_nc_viewer: 'Internal NCs viewer',
+  internal_nc_editor: 'Internal NCs editor',
   waste_viewer: 'Waste viewer',
 }

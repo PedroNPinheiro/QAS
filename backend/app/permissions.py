@@ -12,14 +12,28 @@ from fastapi import Depends, HTTPException
 from .auth import get_current_user
 from .models import User
 
-TEAMS = ("quality", "purchasing", "warehouse", "viewer", "internal_nc_viewer", "waste_viewer")
+TEAMS = (
+    "quality",
+    "purchasing",
+    "warehouse",
+    "viewer",
+    "internal_nc_viewer",
+    "internal_nc_editor",
+    "waste_viewer",
+)
 
 # Teams that may never change anything (no record edits, no file uploads)
 READ_ONLY_TEAMS = {"viewer", "internal_nc_viewer", "waste_viewer"}
 
+# Teams with full edit rights (create/edit/attach) but scoped to specific
+# modules: team -> entity_types it may fully edit.
+MODULE_EDITORS: dict[str, set[str]] = {
+    "internal_nc_editor": {"internal_nc"},
+}
+
 # entity_type -> teams allowed to view the module
 MODULE_TEAMS: dict[str, set[str]] = {
-    "internal_nc": {"quality", "viewer", "internal_nc_viewer"},
+    "internal_nc": {"quality", "viewer", "internal_nc_viewer", "internal_nc_editor"},
     "external_nc": {"quality", "purchasing", "warehouse", "viewer"},
     "test_report": {"quality", "viewer"},
     "accident": {"quality", "viewer"},
@@ -40,6 +54,11 @@ def has_full_access(user: User) -> bool:
     return user.role == "admin" or user.team == "quality"
 
 
+def is_module_editor(user: User, entity_type: str) -> bool:
+    """Team may fully edit this specific module (create/edit all fields/attach)."""
+    return entity_type in MODULE_EDITORS.get(user.team, set())
+
+
 def require_view(user: User, entity_type: str) -> None:
     if user.role == "admin":
         return
@@ -48,13 +67,14 @@ def require_view(user: User, entity_type: str) -> None:
 
 
 def require_create(user: User, entity_type: str) -> None:
-    if not has_full_access(user):
-        raise HTTPException(status_code=403, detail="Only the Quality team can create records")
+    if has_full_access(user) or is_module_editor(user, entity_type):
+        return
+    raise HTTPException(status_code=403, detail="You do not have permission to create records here")
 
 
 def editable_fields(user: User, entity_type: str) -> set[str] | None:
     """Fields the user may change on this module. None means unrestricted."""
-    if has_full_access(user):
+    if has_full_access(user) or is_module_editor(user, entity_type):
         return None
     fields = TEAM_EDITABLE_FIELDS.get(entity_type, {}).get(user.team)
     if fields is None:
