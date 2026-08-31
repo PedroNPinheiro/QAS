@@ -86,11 +86,15 @@ class Page(BaseModel, Generic[T]):
 
 # --------------------------------------------------- internal non-conformity
 
+ProductRange = Literal["VET - WK", "VET-CK", "PET", "RPP", "Joinery"]
+
+
 class InternalNCBase(BaseModel):
     date_detected: date
     po: str | None = None
     project: str | None = None
-    sector: str | None = None
+    sector: str = Field(min_length=1)
+    product_range: ProductRange | None = None
     description: str = Field(min_length=1)
     designer: str | None = None
     root_cause: str | None = None
@@ -112,6 +116,7 @@ class InternalNCCreate(InternalNCBase):
 
 class InternalNCUpdate(InternalNCBase):
     date_detected: date | None = None
+    sector: str | None = None  # optional on edit so partial/inline updates work
     description: str | None = None
     severity: NCSeverity | None = None
     status: RecordStatus | None = None

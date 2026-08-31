@@ -71,6 +71,7 @@ class InternalNonConformity(RecordMixin, CreatedByMixin, Base):
     po: Mapped[str | None] = mapped_column(String(100))
     project: Mapped[str | None] = mapped_column(String(255))
     sector: Mapped[str | None] = mapped_column(String(100))
+    product_range: Mapped[str | None] = mapped_column(String(50))
     description: Mapped[str] = mapped_column(Text)
     designer: Mapped[str | None] = mapped_column(String(255))
     root_cause: Mapped[str | None] = mapped_column(Text)

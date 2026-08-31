@@ -155,6 +155,8 @@ const NC_SEVERITY: Option[] = [
 const opts = (...values: string[]): Option[] =>
   values.map((v) => ({ value: v, label: v }))
 
+const PRODUCT_RANGES: Option[] = opts('VET - WK', 'VET-CK', 'PET', 'RPP', 'Joinery')
+
 // Production sectors seen in the Internal NC spreadsheet
 const SECTORS = [
   'Sales',
@@ -288,7 +290,13 @@ export const MODULES: ModuleDef[] = [
           { name: 'date_detected', label: 'Date', type: 'date', required: true },
           { name: 'po', label: 'PO', type: 'text' },
           { name: 'project', label: 'Project', type: 'text' },
-          { name: 'sector', label: 'Sector', type: 'text', suggestions: SECTORS },
+          { name: 'sector', label: 'Sector', type: 'text', suggestions: SECTORS, required: true },
+          {
+            name: 'product_range',
+            label: 'Product Range',
+            type: 'select',
+            options: PRODUCT_RANGES,
+          },
           { name: 'designer', label: 'Designer', type: 'text' },
           { name: 'severity', label: 'Severity', type: 'select', options: NC_SEVERITY, required: true },
         ],
