@@ -143,6 +143,7 @@ class ExternalNCBase(BaseModel):
     supplier_response: str | None = None
     root_cause: str | None = None
     action_to_take: str | None = None
+    purchasing_complete: bool = False
     return_note: str | None = None
     closure_responsible: str | None = None
     closure_date: date | None = None
@@ -160,6 +161,7 @@ class ExternalNCUpdate(ExternalNCBase):
     supplier: str | None = None
     description: str | None = None
     has_control_range: bool | None = None
+    purchasing_complete: bool | None = None
     severity: NCSeverity | None = None
     status: RecordStatus | None = None
 

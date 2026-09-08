@@ -355,7 +355,7 @@ export const MODULES: ModuleDef[] = [
       { name: 'supplier', label: 'Supplier' },
       { name: 'severity', label: 'Severity', options: NC_SEVERITY },
     ],
-    defaults: { severity: 'minor', status: 'open', has_control_range: false },
+    defaults: { severity: 'minor', status: 'open', has_control_range: false, purchasing_complete: false },
     form: [
       {
         title: 'Identification (Quality)',
@@ -380,6 +380,7 @@ export const MODULES: ModuleDef[] = [
           { name: 'supplier_response', label: 'Supplier response', type: 'textarea' },
           { name: 'root_cause', label: 'Root cause analysis', type: 'textarea' },
           { name: 'action_to_take', label: 'Action to take', type: 'textarea' },
+          { name: 'purchasing_complete', label: 'Purchasing procedure complete', type: 'checkbox' },
         ],
       },
       {

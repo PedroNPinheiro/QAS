@@ -110,6 +110,7 @@ class ExternalNonConformity(RecordMixin, CreatedByMixin, Base):
     supplier_response: Mapped[str | None] = mapped_column(Text)
     root_cause: Mapped[str | None] = mapped_column(Text)
     action_to_take: Mapped[str | None] = mapped_column(Text)
+    purchasing_complete: Mapped[bool] = mapped_column(Boolean, default=False)
     # Warehouse
     return_note: Mapped[str | None] = mapped_column(String(100))
     closure_responsible: Mapped[str | None] = mapped_column(String(255))

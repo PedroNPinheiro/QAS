@@ -44,7 +44,7 @@ MODULE_TEAMS: dict[str, set[str]] = {
 # Fields non-quality teams may edit, per module (mirrored in the frontend)
 TEAM_EDITABLE_FIELDS: dict[str, dict[str, set[str]]] = {
     "external_nc": {
-        "purchasing": {"communicated_date", "supplier_response", "root_cause", "action_to_take"},
+        "purchasing": {"communicated_date", "supplier_response", "root_cause", "action_to_take", "purchasing_complete"},
         "warehouse": {"return_note", "closure_responsible", "closure_date", "notes", "status"},
     },
 }

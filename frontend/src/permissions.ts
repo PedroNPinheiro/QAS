@@ -22,7 +22,7 @@ const MODULE_EDITORS: Record<string, string[]> = {
 
 const TEAM_EDITABLE_FIELDS: Record<string, Record<string, string[]>> = {
   external_nc: {
-    purchasing: ['communicated_date', 'supplier_response', 'root_cause', 'action_to_take'],
+    purchasing: ['communicated_date', 'supplier_response', 'root_cause', 'action_to_take', 'purchasing_complete'],
     warehouse: ['return_note', 'closure_responsible', 'closure_date', 'notes', 'status'],
   },
 }
