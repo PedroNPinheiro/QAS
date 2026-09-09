@@ -123,7 +123,8 @@ class InternalNCUpdate(InternalNCBase):
 
 
 class InternalNCRead(RecordRead, InternalNCBase):
-    pass
+    # Legacy imported records may lack a sector; reads must not reject them.
+    sector: str | None = None
 
 
 # --------------------------------------------- external (supplier) NC
