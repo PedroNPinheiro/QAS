@@ -88,13 +88,13 @@ export default function SagePoPicker({
     return () => clearTimeout(t)
   }, [term])
 
-  const { data: results = [], isFetching: searching } = useQuery<SagePo[]>({
+  const { data: results = [], isFetching: searching, isError: searchError } = useQuery<SagePo[]>({
     queryKey: ['sage-po-search', debounced],
     queryFn: () => api.get(`/sage/purchase-orders?q=${encodeURIComponent(debounced)}`),
     enabled: open && !po,
   })
 
-  const { data: order, isFetching: loadingLines } = useQuery<SageOrder>({
+  const { data: order, isFetching: loadingLines, isError: linesError } = useQuery<SageOrder>({
     queryKey: ['sage-po-lines', po?.pohnum],
     queryFn: () => api.get(`/sage/purchase-order-lines?pohnum=${encodeURIComponent(po!.pohnum)}`),
     enabled: Boolean(po),
@@ -243,7 +243,12 @@ export default function SagePoPicker({
                       <Loader2 className="h-4 w-4 animate-spin" /> Searching…
                     </div>
                   )}
-                  {!searching && results.length === 0 && (
+                  {!searching && searchError && (
+                    <div className="px-4 py-6 text-center text-sm text-amber-600 dark:text-amber-400">
+                      Could not reach Sage X3 — wait a minute and try again.
+                    </div>
+                  )}
+                  {!searching && !searchError && results.length === 0 && (
                     <div className="px-4 py-6 text-center text-sm text-ink-muted">
                       No purchase orders found.
                     </div>
@@ -290,6 +295,10 @@ export default function SagePoPicker({
               {loadingLines ? (
                 <div className="flex items-center gap-2 rounded-lg border border-hairline px-4 py-5 text-sm text-ink-muted">
                   <Loader2 className="h-4 w-4 animate-spin" /> Loading lines…
+                </div>
+              ) : linesError ? (
+                <div className="rounded-lg border border-hairline px-4 py-5 text-sm text-amber-600 dark:text-amber-400">
+                  Could not reach Sage X3 — wait a minute and try again.
                 </div>
               ) : lines.length > 0 ? (
                 <div className="overflow-hidden rounded-lg border border-hairline">

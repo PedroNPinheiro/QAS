@@ -15,6 +15,12 @@ from .config import settings
 
 _TIMEOUT = 30
 
+# One shared client so Syracuse's session cookie is reused across requests.
+# A fresh client per call makes every request open a NEW server-side session,
+# which exhausts the API user's session allowance and gets all further
+# requests bounced (307) to the login page until they time out.
+_client: httpx.AsyncClient | None = None
+
 
 def enabled() -> bool:
     return bool(settings.sagex3_base_url)
@@ -22,6 +28,13 @@ def enabled() -> bool:
 
 def _auth() -> tuple[str, str]:
     return (settings.sagex3_user, settings.sagex3_password)
+
+
+def _get_client() -> httpx.AsyncClient:
+    global _client
+    if _client is None or _client.is_closed:
+        _client = httpx.AsyncClient(timeout=_TIMEOUT, auth=_auth())
+    return _client
 
 
 def _sanitize(value: str) -> str:
@@ -40,10 +53,9 @@ async def _query(class_name: str, where: str = "", count: int = 10,
     url = f"{settings.sagex3_base_url}/{class_name}?{params}"
     if where:
         url += "&where=" + quote(where)
-    async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
-        res = await client.get(url, auth=_auth())
-        res.raise_for_status()
-        return res.json()
+    res = await _get_client().get(url)
+    res.raise_for_status()
+    return res.json()
 
 
 def _supplier_name(row: dict) -> str:
@@ -89,10 +101,9 @@ async def get_purchase_order_lines(pohnum: str) -> dict:
     key = quote(_sanitize(pohnum), safe="")
     url = (f"{settings.sagex3_base_url}/PORDER('{key}')"
            f"?representation=PORDER.$details")
-    async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
-        res = await client.get(url, auth=_auth())
-        res.raise_for_status()
-        data = res.json()
+    res = await _get_client().get(url)
+    res.raise_for_status()
+    data = res.json()
 
     currency = data.get("CUR") or "EUR"
     lines = []
