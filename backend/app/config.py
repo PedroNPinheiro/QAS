@@ -25,6 +25,11 @@ class Settings(BaseSettings):
     ms_tenant_id: str = ""
     ms_client_secret: str = ""
 
+    # Sage X3 REST (unset base URL = Sage purchase-order lookup disabled)
+    sagex3_base_url: str = ""
+    sagex3_user: str = ""
+    sagex3_password: str = ""
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

@@ -77,6 +77,8 @@ export interface ModuleDef {
   requireFilesWhen?: (values: Record<string, unknown>) => string | null
   /** Show a "notify users by email" picker on the create form. */
   notifyPicker?: boolean
+  /** Show the Sage purchase-order picker (fills PO + cost) while editing. */
+  sagePicker?: boolean
   /** Dropdown filters shown on the list page. */
   filters?: FilterDef[]
 }
@@ -268,6 +270,7 @@ export const MODULES: ModuleDef[] = [
     icon: FileWarning,
     hasStatus: true,
     notifyPicker: true,
+    sagePicker: true,
     columns: [
       { key: 'reference', label: 'Reference' },
       { key: 'date_detected', label: 'Date', kind: 'date' },

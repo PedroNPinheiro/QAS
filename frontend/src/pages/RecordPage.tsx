@@ -8,6 +8,7 @@ import { canCreate, canModifyFiles, canViewModule, editableFields, homePath } fr
 import Attachments from '../components/Attachments'
 import History from '../components/History'
 import PendingFiles from '../components/PendingFiles'
+import SagePoPicker from '../components/SagePoPicker'
 import { fmtDate, fmtDateTime, toLocalInput } from '../format'
 import { SECTIONS } from '../modules'
 import type { FieldDef, ModuleDef } from '../modules'
@@ -406,6 +407,9 @@ export default function RecordPage({ module }: { module: ModuleDef }) {
       )}
 
       <div className="space-y-5">
+        {editing && module.sagePicker && fieldEditable('cost') && (
+          <SagePoPicker values={values} onChange={onChange} />
+        )}
         {module.form.map((formSection) => (
           <fieldset
             key={formSection.title}

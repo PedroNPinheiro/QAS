@@ -10,7 +10,7 @@ from sqlalchemy import text
 
 from .config import settings
 from .database import Base, SessionLocal, engine
-from .routers import analytics, attachments, audit, auth, dashboard, notifications, records, users
+from .routers import analytics, attachments, audit, auth, dashboard, notifications, records, sage, users
 
 logger = logging.getLogger("qas")
 
@@ -60,6 +60,7 @@ app.include_router(attachments.router)
 app.include_router(dashboard.router)
 app.include_router(audit.router)
 app.include_router(analytics.router)
+app.include_router(sage.router)
 
 
 @app.get("/api/health")
