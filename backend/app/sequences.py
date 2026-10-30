@@ -41,13 +41,10 @@ def next_reference(
     db: Session,
     prefix: str,
     ref_date: date | datetime | None = None,
-    style: str = "monthly",
     model=None,
 ) -> str:
-    """Return the next reference in the spreadsheet-compatible format.
-
-    - "monthly": PREFIX + MMYY + .NN, e.g. NCI0626.01 (counter per month)
-    - "yearly":  N_YYYY, e.g. 41_2026 (counter per year — test reports)
+    """Return the next reference in the spreadsheet-compatible format:
+    PREFIX + MMYY + .NN, e.g. NCI0626.01 — a counter per month.
 
     The month/year come from the record's own date (`ref_date`). Numbers
     freed by deleting a record are reused (lowest first) so the register
@@ -57,10 +54,9 @@ def next_reference(
     if isinstance(ref_date, datetime):
         ref_date = ref_date.date()
     d = ref_date or date.today()
-    month = 0 if style == "yearly" else d.month
     db.execute(
         pg_insert(RefSequence)
-        .values(prefix=prefix, year=d.year, month=month, last_number=0)
+        .values(prefix=prefix, year=d.year, month=d.month, last_number=0)
         .on_conflict_do_nothing(index_elements=["prefix", "year", "month"])
     )
     # Locked row doubles as the mutex for the freed-number lookup below
@@ -69,23 +65,17 @@ def next_reference(
         .where(
             RefSequence.prefix == prefix,
             RefSequence.year == d.year,
-            RefSequence.month == month,
+            RefSequence.month == d.month,
         )
         .with_for_update()
     ).scalar_one()
 
     def build(n: int) -> str:
-        if style == "yearly":
-            return f"{n}_{d.year}"
         return f"{prefix}{d.month:02d}{d.year % 100:02d}.{n:02d}"
 
     if model is not None:
-        if style == "yearly":
-            pattern = f"%\\_{d.year}"
-            num_of = lambda r: int(m.group(1)) if (m := re.match(r"^(\d+)_\d{4}$", r)) else None
-        else:
-            pattern = f"{prefix}{d.month:02d}{d.year % 100:02d}.%"
-            num_of = lambda r: int(m.group(1)) if (m := re.search(r"\.(\d+)$", r)) else None
+        pattern = f"{prefix}{d.month:02d}{d.year % 100:02d}.%"
+        num_of = lambda r: int(m.group(1)) if (m := re.search(r"\.(\d+)$", r)) else None
 
         # Reuse a number freed by a deletion / date re-home (fills gaps).
         freed = _lowest_freed(db, pattern, num_of, model)

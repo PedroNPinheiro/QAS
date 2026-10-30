@@ -10,7 +10,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 from pydantic import BaseModel
-from sqlalchemy import Boolean as SABoolean, Integer as SAInteger, cast, func, or_, select
+from sqlalchemy import Boolean as SABoolean, func, or_, select
 from sqlalchemy.orm import Session
 
 from .audit import diff_changes, log_audit
@@ -137,7 +137,6 @@ def create_crud_router(
     read_schema: Type[BaseModel],
     search_fields: tuple[str, ...],
     date_field: str,
-    ref_style: str = "monthly",
     display_name: str = "record",
     frontend_path: str = "",
     filter_fields: tuple[str, ...] = (),
@@ -152,9 +151,6 @@ def create_crud_router(
     def ref_matches_period(reference: str, d: date) -> bool:
         """Does this reference belong to the date's month/year sequence?
         Unrecognised formats are left alone (treated as matching)."""
-        if ref_style == "yearly":
-            m = re.match(r"^(\d+)_(\d{4})$", reference)
-            return not m or int(m.group(2)) == d.year
         m = re.match(rf"^{ref_prefix}(\d{{2}})(\d{{2}})\.\d+$", reference)
         return not m or (int(m.group(1)) == d.month and int(m.group(2)) == d.year % 100)
 
@@ -191,11 +187,6 @@ def create_crud_router(
         return stmt
 
     def apply_sort(stmt, sort: str):
-        if not sort and ref_style == "yearly":
-            # yearly registers (quality tests): the number IS the order
-            year_num = cast(func.split_part(model.reference, "_", 2), SAInteger)
-            seq_num = cast(func.split_part(model.reference, "_", 1), SAInteger)
-            return stmt.order_by(year_num.desc(), seq_num.desc())
         sort = sort or f"-{date_field}"
         field = sort.lstrip("-")
         if field not in sortable:
@@ -296,9 +287,7 @@ def create_crud_router(
         notify_emails = data.pop("notify_emails", [])
         obj = model(**data)
         # Reference month follows the record's own date, not today
-        obj.reference = next_reference(
-            db, ref_prefix, getattr(obj, date_field, None), ref_style, model
-        )
+        obj.reference = next_reference(db, ref_prefix, getattr(obj, date_field, None), model)
         obj.created_by_id = user.id
         db.add(obj)
         db.flush()
@@ -368,7 +357,7 @@ def create_crud_router(
             if isinstance(d, datetime):
                 d = d.date()
             if d is not None and not ref_matches_period(obj.reference, d):
-                new_ref = next_reference(db, ref_prefix, d, ref_style, model)
+                new_ref = next_reference(db, ref_prefix, d, model)
                 changes["reference"] = {"from": obj.reference, "to": new_ref}
                 obj.reference = new_ref
         if changes:

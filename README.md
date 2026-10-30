@@ -4,7 +4,7 @@ Internal app for the Quality Department to manage:
 
 | Section | Modules | Source spreadsheet |
 |---|---|---|
-| **Quality** | Internal Non-Conformities (`NCI`), External/Supplier Non-Conformities (`NCE`) | RC.QCP.0020.003, RC.QCP.0020.009 |
+| **Quality** | Internal Non-Conformities (`NCI`), External/Supplier Non-Conformities (`NCE`), Quality Tests & Product Derogations (`QT`) | RC.QCP.0020.003, RC.QCP.0020.009, test report sheet |
 |  **Safety** | Work Accidents (`ACC`), Near Misses (`NM`) | LTI sheet, RC.QUA.0020.019 |
 | **Environment** | Waste Production Records (`WST`) | RC.QUA.0020.014 |
 
@@ -106,7 +106,7 @@ backend/
     models.py          SQLAlchemy models (5 record types, users, attachments, sequences)
     schemas.py         Pydantic schemas
     auth.py            JWT + bcrypt + role guard
-    sequences.py       race-safe yearly reference counters
+    sequences.py       race-safe monthly reference counters
     crud_router.py     generic CRUD factory (list/search/sort/export/get/create/update/delete)
     routers/           auth, users, records, attachments, dashboard
   seed.py              admin user + optional demo data

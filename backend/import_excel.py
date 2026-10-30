@@ -400,10 +400,10 @@ def load_near_misses(docs: Path, refs: RefBook) -> list[models.NearMiss]:
 
 # --------------------------------------------------------------- test reports
 
-def load_tests(docs: Path, used_test_refs: set[str]) -> list[models.TestReport]:
+def load_tests(docs: Path, refs: RefBook) -> list[models.TestReport]:
     wb = load_workbook(docs / "Test report and product derogation 1.xlsx", data_only=True)
     ws = wb["Folha1"]
-    out, last_date = [], None
+    rows, seen, last_date = [], set(), None
     for r in ws.iter_rows(min_row=6, max_col=12):
         raw_ref = txt(r[1].value)
         if not raw_ref:
@@ -412,33 +412,29 @@ def load_tests(docs: Path, used_test_refs: set[str]) -> list[models.TestReport]:
         if not m:
             issue(f"test {raw_ref!r}: unrecognised reference — skipped")
             continue
-        ref = f"{int(m.group(1))}_{m.group(2)}"
-        dup = ref in used_test_refs
-        used_test_refs.add(ref)
-        d = parse_date(r[2].value, f"test {ref}")
+        # the register's own N_YYYY number orders rows within a month
+        register_nr = (int(m.group(2)), int(m.group(1)))
+        if register_nr in seen:
+            issue(f"test {raw_ref}: duplicated number in register")
+        seen.add(register_nr)
+        d = parse_date(r[2].value, f"test {raw_ref}")
         if not d:
             d = last_date or date(int(m.group(2)), 1, 1)
-            issue(f"test {ref}: missing date — used {d} (previous row's date)")
+            issue(f"test {raw_ref}: missing date — used {d} (previous row's date)")
         last_date = d
         desc = txt(r[5].value) or txt(r[6].value) or "(no description in register)"
-        out.append(models.TestReport(
-            reference=ref, test_date=d, tested_by=txt(r[4].value, 255),
+        rows.append((d, register_nr, models.TestReport(
+            test_date=d, tested_by=txt(r[4].value, 255),
             description=desc, result=txt(r[6].value) if txt(r[5].value) else None,
             products_affected=txt(r[7].value), observations=txt(r[8].value),
             derogation=yes(r[9].value),
             first_derogation_po=txt(r[10].value), last_derogation_po=txt(r[11].value),
             created_at=created_ts(d), updated_at=created_ts(d),
-        ))
-        out[-1] = (dup, m.group(2), out[-1])
-    # true duplicates get the next free number in their year
+        )))
+    # like the other registers, the reference follows the record's own date
     records = []
-    for dup, year, obj in out:
-        if dup:
-            nums = [int(x.split("_")[0]) for x in used_test_refs if x.endswith("_" + year)]
-            new_ref = f"{max(nums) + 1}_{year}"
-            used_test_refs.add(new_ref)
-            issue(f"test {obj.reference}: duplicated number in register — imported as {new_ref}")
-            obj.reference = new_ref
+    for d, _, obj in sorted(rows, key=lambda row: row[:2]):
+        obj.reference = refs.next_free("QT", d.month, d.year % 100)
         records.append(obj)
     return records
 
@@ -502,18 +498,14 @@ def sync_sequences(db) -> None:
     db.execute(delete(models.RefSequence))
     counters: dict[tuple, int] = defaultdict(int)
     monthly = {"NCI": models.InternalNonConformity, "NCE": models.ExternalNonConformity,
-               "ACC": models.WorkAccident, "NM": models.NearMiss, "WST": models.WasteRecord}
+               "QT": models.TestReport, "ACC": models.WorkAccident,
+               "NM": models.NearMiss, "WST": models.WasteRecord}
     for prefix, model in monthly.items():
         for (ref,) in db.execute(select(model.reference)):
             m = re.match(rf"^{prefix}(\d{{2}})(\d{{2}})\.(\d+)$", ref)
             if m:
                 key = (prefix, 2000 + int(m.group(2)), int(m.group(1)))
                 counters[key] = max(counters[key], int(m.group(3)))
-    for (ref,) in db.execute(select(models.TestReport.reference)):
-        m = re.match(r"^(\d+)_(\d{4})$", ref)
-        if m:
-            key = ("TR", int(m.group(2)), 0)
-            counters[key] = max(counters[key], int(m.group(1)))
     for (prefix, year, month), last in counters.items():
         db.add(models.RefSequence(prefix=prefix, year=year, month=month, last_number=last))
 
@@ -534,16 +526,15 @@ def main() -> None:
             print("Wiped records, attachments, audit log, counters (users kept).")
 
         existing = {ref for model in (models.InternalNonConformity, models.ExternalNonConformity,
-                                      models.WorkAccident, models.NearMiss, models.WasteRecord)
+                                      models.TestReport, models.WorkAccident, models.NearMiss,
+                                      models.WasteRecord)
                     for (ref,) in db.execute(select(model.reference))} if not wipe else set()
         refs = RefBook(existing)
-        used_tests = ({ref for (ref,) in db.execute(select(models.TestReport.reference))}
-                      if not wipe else set())
 
         batches = {
             "Internal NCs": load_internal(docs, refs),
             "External NCs": load_external(docs, refs),
-            "Quality tests": load_tests(docs, used_tests),
+            "Quality tests": load_tests(docs, refs),
             "Accidents": load_accidents(docs, refs),
             "Near misses": load_near_misses(docs, refs),
             "Waste records": load_waste(docs, refs),

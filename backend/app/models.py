@@ -216,7 +216,7 @@ class AuditLog(Base):
 
 
 class TestReport(RecordMixin, CreatedByMixin, Base):
-    """Test report / product derogation register (numbered per year, e.g. 5_2026)."""
+    """Test report / product derogation register (references QT0126.01)."""
 
     __tablename__ = "test_reports"
 
