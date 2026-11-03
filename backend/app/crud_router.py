@@ -47,6 +47,7 @@ HEADER_OVERRIDES = {
     "created_by_name": "Created By",
     "nature": "Nature of Injury",
     "return_note": "Return Note Nº",
+    "designer": "Designer/Comercial",
 }
 
 # Human labels for enum values, applied only to enum-backed fields

@@ -300,7 +300,7 @@ export const MODULES: ModuleDef[] = [
             type: 'select',
             options: PRODUCT_RANGES,
           },
-          { name: 'designer', label: 'Designer', type: 'text' },
+          { name: 'designer', label: 'Designer/Comercial', type: 'text' },
           { name: 'severity', label: 'Severity', type: 'select', options: NC_SEVERITY, required: true },
         ],
       },

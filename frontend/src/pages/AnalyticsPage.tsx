@@ -46,7 +46,7 @@ const MODULES: ModuleAnalytics[] = [
       { value: 'project', label: 'Project' },
       { value: 'severity', label: 'Severity' },
       { value: 'status', label: 'Status' },
-      { value: 'designer', label: 'Designer' },
+      { value: 'designer', label: 'Designer/Comercial' },
     ],
   },
   {
