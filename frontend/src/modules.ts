@@ -2,11 +2,13 @@ import {
   AlertTriangle,
   FileWarning,
   FlaskConical,
+  Lightbulb,
   PackageX,
   Recycle,
   ShieldAlert,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { isoWeekLabel } from './format'
 
 export type FieldType =
   | 'text'
@@ -31,6 +33,8 @@ export interface FieldDef {
   suggestions?: string[]
   required?: boolean
   hint?: string
+  /** Read-only field computed from the other values; never sent to the API. */
+  derive?: (values: Record<string, unknown>) => string
 }
 
 export interface FormSection {
@@ -51,6 +55,8 @@ export interface ColumnDef {
   kind?: 'text' | 'date' | 'datetime' | 'status' | 'severity' | 'number' | 'bool'
   /** This column absorbs the remaining table width (one per module). */
   wide?: boolean
+  /** Fixed width override (CSS length) for modules with many columns. */
+  width?: string
 }
 
 export type SectionKey = 'quality' | 'security' | 'environment'
@@ -146,6 +152,27 @@ const NEAR_MISS_STATUS: Option[] = [
   { value: 'on_time', label: 'On time' },
   { value: 'delayed', label: 'Delayed' },
   { value: 'concluded', label: 'Concluded' },
+]
+
+const IMPROVEMENT_STATUS: Option[] = [
+  { value: 'open', label: 'Open' },
+  { value: 'closed', label: 'Closed' },
+]
+
+// Suggestions only — the department field accepts any text
+const IMPROVEMENT_DEPARTMENTS = [
+  'Quality',
+  'Safety',
+  'Environment',
+  'Production',
+  'Engineering',
+  'Design',
+  'Planning',
+  'Purchasing',
+  'Warehouse',
+  'Logistics',
+  'Maintenance',
+  'Sales',
 ]
 
 const NC_SEVERITY: Option[] = [
@@ -440,6 +467,70 @@ export const MODULES: ModuleDef[] = [
           { name: 'derogation', label: 'Product derogation', type: 'checkbox' },
           { name: 'first_derogation_po', label: 'First derogation PO', type: 'textarea' },
           { name: 'last_derogation_po', label: 'Last derogation PO', type: 'textarea' },
+        ],
+      },
+    ],
+  },
+  {
+    path: '/quality/weekly-improvements',
+    api: '/quality/weekly-improvements',
+    entityType: 'weekly_improvement',
+    title: 'Weekly Improvements',
+    navLabel: 'Weekly Improvements',
+    singular: 'Weekly Improvement',
+    section: 'quality',
+    icon: Lightbulb,
+    hasStatus: true,
+    columns: [
+      { key: 'reference', label: 'Code' },
+      { key: 'opening_date', label: 'Opened', kind: 'date' },
+      { key: 'week', label: 'Week', width: '5.8rem' },
+      { key: 'department', label: 'Department', width: '7.5rem' },
+      { key: 'project_po', label: 'Project / PO', width: '7.5rem' },
+      { key: 'description', label: 'Action description', wide: true },
+      { key: 'owner', label: 'Owner', width: '7.5rem' },
+      { key: 'implementation_date', label: 'Impl. date', kind: 'date', width: '7rem' },
+      { key: 'status', label: 'Status', kind: 'status', width: '6.5rem' },
+    ],
+    filters: [
+      { name: 'department', label: 'Department' },
+      { name: 'owner', label: 'Owner' },
+    ],
+    defaults: { status: 'open' },
+    form: [
+      {
+        title: 'Improvement',
+        fields: [
+          { name: 'opening_date', label: 'Opening date', type: 'date', required: true },
+          {
+            name: 'week',
+            label: 'Week',
+            type: 'text',
+            hint: 'Automatic — from the opening date',
+            derive: (v) => isoWeekLabel(v.opening_date as string | null),
+          },
+          {
+            name: 'department',
+            label: 'Department',
+            type: 'text',
+            suggestions: IMPROVEMENT_DEPARTMENTS,
+          },
+          { name: 'project_po', label: 'Affected project / PO', type: 'text' },
+          { name: 'description', label: 'Action description', type: 'textarea', required: true },
+        ],
+      },
+      {
+        title: 'Implementation',
+        fields: [
+          { name: 'owner', label: 'Owner', type: 'text' },
+          { name: 'implementation_date', label: 'Implementation date', type: 'date' },
+          {
+            name: 'status',
+            label: 'Status',
+            type: 'select',
+            options: IMPROVEMENT_STATUS,
+            required: true,
+          },
         ],
       },
     ],

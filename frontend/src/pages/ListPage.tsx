@@ -61,6 +61,7 @@ const COL_WIDTH: Record<string, string> = {
 
 function colWidth(c: ColumnDef): string | undefined {
   if (c.wide) return undefined
+  if (c.width) return c.width
   if (c.key === 'reference') return '7.5rem'
   return COL_WIDTH[c.kind ?? 'text']
 }

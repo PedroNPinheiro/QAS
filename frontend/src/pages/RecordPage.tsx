@@ -24,7 +24,7 @@ function inputValue(field: FieldDef, values: Rec): string {
 
 /** Read-only presentation of a field (reader mode). */
 function ReadField({ field, values }: { field: FieldDef; values: Rec }) {
-  const v = values[field.name]
+  const v = field.derive ? field.derive(values) : values[field.name]
   let text: string
   if (v === null || v === undefined || v === '') text = '—'
   else if (field.type === 'checkbox') text = v ? 'Yes' : 'No'
@@ -66,6 +66,23 @@ function Field({
       {field.required && <span className="ml-0.5 text-red-500">*</span>}
     </span>
   )
+
+  // Computed fields: shown as a locked box so they still read as a field
+  if (field.derive) {
+    return (
+      <label className="block">
+        {label}
+        <input
+          type="text"
+          readOnly
+          tabIndex={-1}
+          value={field.derive(values)}
+          placeholder={field.hint ?? 'Automatic'}
+          className={`${base} cursor-default bg-ink/5 text-ink-secondary focus:border-hairline`}
+        />
+      </label>
+    )
+  }
 
   if (field.type === 'checkbox') {
     return (
@@ -149,7 +166,7 @@ function Field({
 function toPayload(module: ModuleDef, values: Rec, allowed: string[] | null): Rec {
   const fields = module.form
     .flatMap((s) => s.fields)
-    .filter((f) => allowed === null || allowed.includes(f.name))
+    .filter((f) => !f.derive && (allowed === null || allowed.includes(f.name)))
   const payload: Rec = {}
   for (const f of fields) {
     let v = values[f.name]
@@ -419,7 +436,7 @@ export default function RecordPage({ module }: { module: ModuleDef }) {
             <h2 className="mb-4 text-sm font-semibold">{formSection.title}</h2>
             <div className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
               {formSection.fields.map((f) =>
-                editing && fieldEditable(f.name) ? (
+                editing && (fieldEditable(f.name) || f.derive) ? (
                   <Field key={f.name} field={f} values={values} onChange={onChange} />
                 ) : (
                   <ReadField key={f.name} field={f} values={values} />

@@ -20,6 +20,7 @@ ENTITY_MODELS = {
     "internal_nc": models.InternalNonConformity,
     "external_nc": models.ExternalNonConformity,
     "test_report": models.TestReport,
+    "weekly_improvement": models.WeeklyImprovement,
     "accident": models.WorkAccident,
     "near_miss": models.NearMiss,
     "waste": models.WasteRecord,

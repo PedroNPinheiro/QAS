@@ -36,6 +36,7 @@ MODULE_TEAMS: dict[str, set[str]] = {
     "internal_nc": {"quality", "viewer", "internal_nc_viewer", "internal_nc_editor"},
     "external_nc": {"quality", "purchasing", "warehouse", "viewer"},
     "test_report": {"quality", "viewer"},
+    "weekly_improvement": {"quality"},  # quality only for now
     "accident": {"quality", "viewer"},
     "near_miss": {"quality", "viewer"},
     "waste": {"quality", "viewer", "waste_viewer"},

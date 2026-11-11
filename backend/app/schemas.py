@@ -303,6 +303,43 @@ class TestReportRead(RecordRead, TestReportBase):
     pass
 
 
+# --------------------------------------------------------- weekly improvement
+
+ImprovementStatus = Literal["open", "closed"]
+
+
+class WeeklyImprovementBase(BaseModel):
+    opening_date: date
+    department: str | None = None
+    project_po: str | None = None
+    description: str = Field(min_length=1)
+    owner: str | None = None
+    implementation_date: date | None = None
+    status: ImprovementStatus = "open"
+
+
+class WeeklyImprovementCreate(WeeklyImprovementBase):
+    pass
+
+
+class WeeklyImprovementUpdate(WeeklyImprovementBase):
+    opening_date: date | None = None
+    description: str | None = None
+    status: ImprovementStatus | None = None
+
+
+class WeeklyImprovementRead(RecordRead):
+    # Field order = Excel export column order; week is derived from the date
+    opening_date: date
+    week: str | None = None
+    department: str | None = None
+    project_po: str | None = None
+    description: str
+    owner: str | None = None
+    implementation_date: date | None = None
+    status: str
+
+
 # ---------------------------------------------------------------- attachments
 
 class AttachmentRead(BaseModel):

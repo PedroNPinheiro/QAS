@@ -233,6 +233,30 @@ class TestReport(RecordMixin, CreatedByMixin, Base):
     created_by: Mapped[User | None] = relationship()
 
 
+class WeeklyImprovement(RecordMixin, CreatedByMixin, Base):
+    """Weekly improvement register (references WI1126.01)."""
+
+    __tablename__ = "weekly_improvements"
+
+    opening_date: Mapped[date] = mapped_column(Date)
+    department: Mapped[str | None] = mapped_column(String(100))
+    project_po: Mapped[str | None] = mapped_column(String(255))  # affected project / PO
+    description: Mapped[str] = mapped_column(Text)  # action description
+    owner: Mapped[str | None] = mapped_column(String(255))
+    implementation_date: Mapped[date | None] = mapped_column(Date)
+    status: Mapped[str] = mapped_column(String(20), default="open", index=True)  # open | closed
+
+    created_by: Mapped[User | None] = relationship()
+
+    @property
+    def week(self) -> str | None:
+        """ISO week of the opening date, e.g. W46/2026."""
+        if self.opening_date is None:
+            return None
+        iso = self.opening_date.isocalendar()
+        return f"W{iso.week:02d}/{iso.year}"
+
+
 class NotificationRecipient(Base):
     """Fixed 'notify on create' recipients per module (admin-managed)."""
 

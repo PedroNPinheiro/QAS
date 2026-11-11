@@ -60,6 +60,23 @@ router.include_router(
 
 router.include_router(
     create_crud_router(
+        model=models.WeeklyImprovement,
+        ref_prefix="WI",
+        entity_type="weekly_improvement",
+        create_schema=schemas.WeeklyImprovementCreate,
+        update_schema=schemas.WeeklyImprovementUpdate,
+        read_schema=schemas.WeeklyImprovementRead,
+        search_fields=("description", "department", "project_po", "owner"),
+        date_field="opening_date",
+        display_name="Weekly Improvement",
+        frontend_path="/quality/weekly-improvements",
+        filter_fields=("department", "owner"),
+    ),
+    prefix="/quality/weekly-improvements",
+)
+
+router.include_router(
+    create_crud_router(
         model=models.WorkAccident,
         ref_prefix="ACC",
         entity_type="accident",
