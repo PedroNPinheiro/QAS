@@ -8,7 +8,8 @@ const MODULE_TEAMS: Record<string, string[]> = {
   internal_nc: ['quality', 'viewer', 'internal_nc_viewer', 'internal_nc_editor'],
   external_nc: ['quality', 'purchasing', 'warehouse', 'viewer'],
   test_report: ['quality', 'viewer'],
-  weekly_improvement: ['quality'], // quality only for now
+  // others get in via the improvements_editor team or a per-user extra module
+  weekly_improvement: ['quality', 'improvements_editor'],
   accident: ['quality', 'viewer'],
   near_miss: ['quality', 'viewer'],
   waste: ['quality', 'viewer', 'waste_viewer'],
@@ -19,7 +20,11 @@ const READ_ONLY_TEAMS = ['viewer', 'internal_nc_viewer', 'waste_viewer']
 // Teams with full edit rights scoped to specific modules
 const MODULE_EDITORS: Record<string, string[]> = {
   internal_nc_editor: ['internal_nc'],
+  improvements_editor: ['weekly_improvement'],
 }
+
+/** Modules an admin can grant to a single user on top of their team. */
+export const EXTRA_MODULES = [{ value: 'weekly_improvement', label: 'Weekly Improvements' }]
 
 const TEAM_EDITABLE_FIELDS: Record<string, Record<string, string[]>> = {
   external_nc: {
@@ -32,11 +37,15 @@ export const hasFullAccess = (user: User | null) =>
   user !== null && (user.role === 'admin' || user.team === 'quality')
 
 const isModuleEditor = (user: User | null, module: ModuleDef) =>
-  user !== null && (MODULE_EDITORS[user.team]?.includes(module.entityType) ?? false)
+  user !== null &&
+  ((MODULE_EDITORS[user.team]?.includes(module.entityType) ?? false) ||
+    (user.extra_modules?.includes(module.entityType) ?? false))
 
 export const canViewModule = (user: User | null, module: ModuleDef) =>
   user !== null &&
-  (user.role === 'admin' || MODULE_TEAMS[module.entityType]?.includes(user.team))
+  (user.role === 'admin' ||
+    isModuleEditor(user, module) ||
+    MODULE_TEAMS[module.entityType]?.includes(user.team))
 
 export const canCreate = (user: User | null, module: ModuleDef) =>
   hasFullAccess(user) || isModuleEditor(user, module)
@@ -58,7 +67,9 @@ export const canSeeDashboards = (user: User | null) =>
 /** Uploading/removing files counts as editing — read-only teams may not. */
 export const canModifyFiles = (user: User | null, module: ModuleDef) =>
   canViewModule(user, module) &&
-  (user?.role === 'admin' || !READ_ONLY_TEAMS.includes(user?.team ?? ''))
+  (user?.role === 'admin' ||
+    isModuleEditor(user, module) ||
+    !READ_ONLY_TEAMS.includes(user?.team ?? ''))
 
 /** Landing page: dashboard when allowed, else the first visible module. */
 export const homePath = (user: User | null) =>
@@ -72,4 +83,5 @@ export const TEAM_LABELS: Record<string, string> = {
   internal_nc_viewer: 'Internal NCs viewer',
   internal_nc_editor: 'Internal NCs editor',
   waste_viewer: 'Waste viewer',
+  improvements_editor: 'Weekly Improvements',
 }

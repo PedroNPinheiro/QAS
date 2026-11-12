@@ -20,6 +20,7 @@ TEAMS = (
     "internal_nc_viewer",
     "internal_nc_editor",
     "waste_viewer",
+    "improvements_editor",
 )
 
 # Teams that may never change anything (no record edits, no file uploads)
@@ -29,6 +30,7 @@ READ_ONLY_TEAMS = {"viewer", "internal_nc_viewer", "waste_viewer"}
 # modules: team -> entity_types it may fully edit.
 MODULE_EDITORS: dict[str, set[str]] = {
     "internal_nc_editor": {"internal_nc"},
+    "improvements_editor": {"weekly_improvement"},
 }
 
 # entity_type -> teams allowed to view the module
@@ -36,7 +38,8 @@ MODULE_TEAMS: dict[str, set[str]] = {
     "internal_nc": {"quality", "viewer", "internal_nc_viewer", "internal_nc_editor"},
     "external_nc": {"quality", "purchasing", "warehouse", "viewer"},
     "test_report": {"quality", "viewer"},
-    "weekly_improvement": {"quality"},  # quality only for now
+    # others get in via the improvements_editor team or a per-user extra module
+    "weekly_improvement": {"quality", "improvements_editor"},
     "accident": {"quality", "viewer"},
     "near_miss": {"quality", "viewer"},
     "waste": {"quality", "viewer", "waste_viewer"},
@@ -56,12 +59,15 @@ def has_full_access(user: User) -> bool:
 
 
 def is_module_editor(user: User, entity_type: str) -> bool:
-    """Team may fully edit this specific module (create/edit all fields/attach)."""
-    return entity_type in MODULE_EDITORS.get(user.team, set())
+    """User may fully use this specific module (view/create/edit all fields/
+    attach) — through their team, or a module granted to them individually."""
+    return entity_type in MODULE_EDITORS.get(user.team, set()) or entity_type in (
+        user.extra_modules or []
+    )
 
 
 def require_view(user: User, entity_type: str) -> None:
-    if user.role == "admin":
+    if user.role == "admin" or is_module_editor(user, entity_type):
         return
     if user.team not in MODULE_TEAMS.get(entity_type, set()):
         raise HTTPException(status_code=403, detail="Your team does not have access to this module")
@@ -94,5 +100,7 @@ def require_full_access(user: User = Depends(get_current_user)) -> User:
 def require_attach(user: User, entity_type: str) -> None:
     """Uploading/removing files counts as editing — read-only teams may not."""
     require_view(user, entity_type)
+    if is_module_editor(user, entity_type):
+        return
     if user.role != "admin" and user.team in READ_ONLY_TEAMS:
         raise HTTPException(status_code=403, detail="Your access is read-only")

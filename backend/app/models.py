@@ -32,6 +32,11 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(20), default="user")  # admin | user
     # quality (full record access) | purchasing | warehouse (external NCs only)
     team: Mapped[str] = mapped_column(String(20), default="quality", server_default="quality")
+    # Modules the user may fully use (view/create/edit/attach) on top of what
+    # their team allows, e.g. ["weekly_improvement"].
+    extra_modules: Mapped[list[str]] = mapped_column(
+        JSONB, default=list, server_default="[]"
+    )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 

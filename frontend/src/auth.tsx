@@ -16,6 +16,9 @@ export interface User {
     | 'internal_nc_viewer'
     | 'internal_nc_editor'
     | 'waste_viewer'
+    | 'improvements_editor'
+  /** Modules granted to this user on top of their team (entity types). */
+  extra_modules?: string[]
 }
 
 interface AuthState {

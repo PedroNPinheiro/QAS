@@ -5,6 +5,7 @@ import { api } from '../api/client'
 import { useAuth } from '../auth'
 import type { User } from '../auth'
 import { fmtDate } from '../format'
+import { EXTRA_MODULES, TEAM_LABELS } from '../permissions'
 
 interface FullUser extends User {
   is_active: boolean
@@ -18,6 +19,7 @@ interface Draft {
   password: string
   role: 'admin' | 'user'
   team: User['team']
+  extra_modules: string[]
   is_active: boolean
 }
 
@@ -27,6 +29,7 @@ const emptyDraft: Draft = {
   password: '',
   role: 'user',
   team: 'quality',
+  extra_modules: [],
   is_active: true,
 }
 
@@ -38,6 +41,7 @@ const TEAM_OPTIONS = [
   { value: 'internal_nc_viewer', label: 'Internal NCs viewer (read-only)' },
   { value: 'internal_nc_editor', label: 'Internal NCs editor (view + edit)' },
   { value: 'waste_viewer', label: 'Waste viewer (read-only)' },
+  { value: 'improvements_editor', label: 'Weekly Improvements only (view + create)' },
 ] as const
 
 const inputCls =
@@ -131,6 +135,35 @@ function UserModal({
               ))}
             </select>
           </label>
+          <div>
+            <span className="mb-1 block text-sm font-medium text-ink-secondary">
+              Additional access
+            </span>
+            {EXTRA_MODULES.map((m) => (
+              <label
+                key={m.value}
+                className="flex cursor-pointer items-center gap-2 text-sm text-ink-secondary"
+              >
+                <input
+                  type="checkbox"
+                  checked={draft.extra_modules.includes(m.value)}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      extra_modules: e.target.checked
+                        ? [...draft.extra_modules, m.value]
+                        : draft.extra_modules.filter((x) => x !== m.value),
+                    })
+                  }
+                  className="h-4 w-4"
+                />
+                {m.label}
+              </label>
+            ))}
+            <span className="mt-1 block text-xs text-ink-muted">
+              View and create here, on top of what the team allows.
+            </span>
+          </div>
           <div className="flex items-center gap-4">
             <label className="block flex-1">
               <span className="mb-1 block text-sm font-medium text-ink-secondary">Role</span>
@@ -200,12 +233,14 @@ export default function Users() {
           password: d.password || null,
           role: d.role,
           team: d.team,
+          extra_modules: d.extra_modules,
         })
       }
       const payload: Record<string, unknown> = {
         full_name: d.full_name,
         role: d.role,
         team: d.team,
+        extra_modules: d.extra_modules,
         is_active: d.is_active,
       }
       if (d.password) payload.password = d.password
@@ -268,6 +303,7 @@ export default function Users() {
                     password: '',
                     role: u.role,
                     team: u.team,
+                    extra_modules: u.extra_modules ?? [],
                     is_active: u.is_active,
                   })
                 }}
@@ -279,7 +315,15 @@ export default function Users() {
                 </td>
                 <td className="px-4 py-3 text-ink-secondary">{u.email}</td>
                 <td className="px-4 py-3">
-                  <span className="capitalize">{u.team}</span>
+                  {TEAM_LABELS[u.team] ?? u.team}
+                  {EXTRA_MODULES.filter((m) => u.extra_modules?.includes(m.value)).map((m) => (
+                    <span
+                      key={m.value}
+                      className="ml-2 inline-flex rounded-full border border-hairline px-2 py-0.5 text-xs text-ink-secondary"
+                    >
+                      + {m.label}
+                    </span>
+                  ))}
                 </td>
                 <td className="px-4 py-3">
                   <span className="capitalize">{u.role}</span>

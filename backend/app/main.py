@@ -26,6 +26,11 @@ if not _qas_root.handlers:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
+    # create_all never alters existing tables — add columns introduced later
+    with engine.begin() as conn:
+        conn.execute(text(
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS extra_modules JSONB NOT NULL DEFAULT '[]'"
+        ))
     Path(settings.upload_dir).mkdir(parents=True, exist_ok=True)
     yield
 

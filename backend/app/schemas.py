@@ -18,7 +18,10 @@ Team = Literal[
     "internal_nc_viewer",
     "internal_nc_editor",
     "waste_viewer",
+    "improvements_editor",
 ]
+# Modules that can be granted to a single user on top of their team
+ExtraModule = Literal["weekly_improvement"]
 
 
 # ---------------------------------------------------------------- auth / users
@@ -41,6 +44,7 @@ class UserRead(BaseModel):
     full_name: str
     role: Role
     team: Team
+    extra_modules: list[str] = []
     is_active: bool
     created_at: datetime
 
@@ -52,6 +56,7 @@ class UserCreate(BaseModel):
     password: str | None = Field(default=None, min_length=8)
     role: Role = "user"
     team: Team = "quality"
+    extra_modules: list[ExtraModule] = []
 
 
 class UserUpdate(BaseModel):
@@ -59,6 +64,7 @@ class UserUpdate(BaseModel):
     password: str | None = Field(default=None, min_length=8)
     role: Role | None = None
     team: Team | None = None
+    extra_modules: list[ExtraModule] | None = None
     is_active: bool | None = None
 
 

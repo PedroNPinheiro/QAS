@@ -38,6 +38,7 @@ def create_user(
         hashed_password=hash_password(payload.password) if payload.password else None,
         role=payload.role,
         team=payload.team,
+        extra_modules=sorted(set(payload.extra_modules)),
     )
     db.add(user)
     db.commit()
@@ -59,6 +60,10 @@ def update_user(user_id: int, payload: UserUpdate, db: Session = Depends(get_db)
     data = payload.model_dump(exclude_unset=True)
     if "password" in data:
         user.hashed_password = hash_password(data.pop("password"))
+    if data.get("extra_modules") is not None:
+        data["extra_modules"] = sorted(set(data["extra_modules"]))
+    else:
+        data.pop("extra_modules", None)
     for key, value in data.items():
         setattr(user, key, value)
     db.commit()
